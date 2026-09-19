@@ -363,6 +363,7 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
     <h1>Настройки</h1>
     <div class="card stack">
       <h2>Кто вы</h2>
+      <p class="small" id="roleText" hidden></p>
       <div class="row"><div class="seg" id="roleSeg"><button data-v="owner">Владелец</button><button data-v="manager">Менеджер</button></div></div>
       <p class="small muted">Владелец меняет правила и автопилот. Менеджер проверяет очередь и пополняет знания. Сами правила, автопилот и Telegram настраиваются во вкладке «Правила».</p>
     </div>
@@ -372,7 +373,7 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
       <p class="small">Воркер на компьютере магазина раз в полчаса забирает новые отзывы и вопросы, пишет черновики и выкладывает их сюда. Вы проверяете и нажимаете «Отправить». При следующем прогоне ответ уходит на площадку. Отзывы Ozon по API недоступны, с Ozon приходят только вопросы.</p>
     </div>
     <div class="card stack" id="appCard" hidden><h2>Приложение на телефон</h2><p class="small muted">Сайт можно поставить как приложение: значок на главном экране, открывается на весь экран. На Android откройте сайт в Chrome → меню ⋮ → «Установить приложение» (или «Добавить на главный экран»). На компьютере — значок установки в адресной строке Chrome.</p><div class="row"><button class="btn primary" id="btnInstall" hidden>Установить приложение</button></div></div>
-    <div class="card stack" id="accessCard" hidden><h2>Доступ</h2><p class="small" id="accessText"></p><div class="row"><button class="btn primary" id="btnInvite">Скопировать ссылку для сотрудника</button><button class="btn" id="btnLogout">Выйти на этом устройстве</button></div><input type="text" id="inviteBox" readonly hidden><p class="small muted" id="inviteNote">По этой ссылке сотрудник входит, вписав только своё имя. Ссылка работает как ключ: отправляйте её только своим людям и только личным сообщением. Если сотрудник ушёл, удалите ключ на GitHub и сделайте новый.</p></div>
+    <div class="card stack" id="accessCard" hidden><h2>Доступ</h2><p class="small" id="accessText"></p><label class="f" id="mkeyWrap" hidden>Ключ для сотрудников (ключ менеджера, не ваш)<input type="password" id="mKey" autocomplete="off" placeholder="github_pat_…"></label><div class="row"><button class="btn primary" id="btnInvite">Скопировать ссылку для сотрудника</button><button class="btn" id="btnLogout">Выйти на этом устройстве</button></div><input type="text" id="inviteBox" readonly hidden><p class="small muted" id="inviteNote">По этой ссылке сотрудник входит, вписав только своё имя. Ссылка работает как ключ: отправляйте её только своим людям и только личным сообщением. Если сотрудник ушёл, удалите ключ на GitHub и сделайте новый.</p></div>
     <div class="card stack" id="demoCard"><h2>Демо-данные</h2><p class="small muted">Вернуть примеры к начальному виду. На живые данные не влияет.</p><button class="btn danger" id="btnReset">Сбросить демо</button></div>
   </div>
 </section>
@@ -382,7 +383,6 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
   <h1>Вход в «Отклик»</h1>
   <p class="small muted" id="lgHint">Введите ключ доступа. Его выдаёт владелец магазина. Ключ хранится только в этом браузере.</p>
   <label class="f">Ваше имя<input id="lgName" type="text" maxlength="30" autocomplete="name" placeholder="Например: Анна"></label>
-  <label class="f">Кто вы<select id="lgRole"><option value="manager">Менеджер</option><option value="owner">Владелец</option></select></label>
   <label class="f">Ключ доступа<input id="lgToken" type="password" autocomplete="off" placeholder="github_pat_…"></label>
   <p class="small" id="lgErr" style="color:var(--bad)" hidden></p>
   <div class="row"><button class="btn primary" id="lgGo">Войти</button><button class="btn ghost" id="lgDemo">Посмотреть демо</button></div>
@@ -410,7 +410,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 const clone=o=>JSON.parse(JSON.stringify(o));
 const ARM={};
 function ask(key,msg){const t=Date.now();if(ARM[key]&&t-ARM[key]<7000){delete ARM[key];return true;}ARM[key]=t;toast(msg+" Нажмите ещё раз, чтобы подтвердить.");return false;}
-const ERR_RU={invalid_argument:"база отклонила запись",quota_exceeded:"база переполнена",resource_exhausted:"слишком много запросов, подождите минуту",unavailable:"база временно недоступна",revoked:"доступ к базе отозван, обновите страницу",not_granted:"доступ к базе не выдан этой странице",not_found:"запись не найдена",no_db:"база не подключена",gh_auth:"ключ доступа не подходит или отозван",gh_notfound:"данные магазина не найдены, проверьте ключ доступа",gh_readonly:"ключ доступа только для чтения, попросите у владельца ключ с правом записи",gh_limit:"GitHub просит подождать: слишком много запросов",gh_conflict:"одновременная правка, попробуйте ещё раз",gh_http:"GitHub временно недоступен",gh_net:"нет связи с интернетом",gh_unsupported:"действие недоступно"};
+const ERR_RU={invalid_argument:"база отклонила запись",quota_exceeded:"база переполнена",resource_exhausted:"слишком много запросов, подождите минуту",unavailable:"база временно недоступна",revoked:"доступ к базе отозван, обновите страницу",not_granted:"доступ к базе не выдан этой странице",not_found:"запись не найдена",no_db:"база не подключена",gh_auth:"ключ доступа не подходит или отозван",gh_notfound:"данные магазина не найдены, проверьте ключ доступа",gh_readonly:"ключ доступа только для чтения, попросите у владельца ключ с правом записи",gh_limit:"GitHub просит подождать: слишком много запросов",gh_conflict:"одновременная правка, попробуйте ещё раз",gh_http:"GitHub временно недоступен",gh_net:"нет связи с интернетом",gh_unsupported:"действие недоступно",gh_notowner:"правила меняет только владелец со своим ключом"};
 const errText=e=>(e&&e.code&&(ERR_RU[e.code]||e.code))||"неизвестная ошибка";
 function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),3200);}
 function fmtDate(v){const d=new Date(v);if(isNaN(d))return "";return d.toLocaleDateString("ru-RU",{day:"numeric",month:"short"})+", "+d.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});}
@@ -487,7 +487,7 @@ function overlay(list,decs){
     if(d.action==="manual")return Object.assign({},r,{status:"manual",reason:"возвращён на проверку: "+(d.by||"")});
     return r;});
 }
-const isOwner=()=>S.role==="owner";
+const isOwner=()=>(GH_MODE&&dbase)?GHOWNER:S.role==="owner";
 function typing(){const a=document.activeElement;return a&&(a.tagName==="TEXTAREA"||a.tagName==="SELECT"||(a.tagName==="INPUT"&&a.type==="text"));}
 let voiceDirty=false;
 function refresh(){if(typing()){needRender=true;return;}needRender=false;render();}
@@ -496,39 +496,52 @@ document.addEventListener("focusout",()=>{setTimeout(()=>{if(needRender&&!typing
 /* ================= GitHub как база: сайт открыт с GitHub Pages, а не внутри Claude =================
    Сводные файлы (reviews.json, analytics.json, edits.json, skills.json, config.json, status.json) пишет только воркер.
    Сайт только добавляет маленькие файлы в inbox/ — воркер забирает их при следующем прогоне. Поэтому конфликтов нет. */
-const GHCFG=Object.assign({owner:"andress8286-cpu",repo:"otklik-data",branch:"main",api:"https://api.github.com",poll:40000},window.OTKLIK_GH||{});
+const GHCFG=Object.assign({owner:"andress8286-cpu",repo:"otklik-data",ownerRepo:"otklik-owner",branch:"main",api:"https://api.github.com",poll:40000},window.OTKLIK_GH||{});
 const GH_MODE=!(window.claude&&window.claude.use)&&(!!window.OTKLIK_GH||/\.github\.io$/i.test(location.hostname)||/[?&]gh=1\b/.test(location.search));
 const GHKEY="otklik.gh";
-let GHUSER=null,GHINVITE="";
+let GHUSER=null,GHINVITE="",GHOWNER=false;          // GHOWNER: вошли ключом владельца (роль задаёт ключ, а не выбор человека)
 /* Ссылка-приглашение: …/#k=ключ. Часть после # на сервер не уходит; ключ сразу убираем из адресной строки и истории. */
 (function(){const m=/[#&]k=([A-Za-z0-9_]{20,})/.exec(location.hash||"");if(!m)return;GHINVITE=m[1];try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}})();
 function ghAuth(){try{return JSON.parse(localStorage.getItem(GHKEY))||null;}catch(e){return null;}}
 function ghDb(token,opts){
   opts=opts||{};
-  const base=`${GHCFG.api}/repos/${GHCFG.owner}/${GHCFG.repo}`;
+  const base=`${GHCFG.api}/repos/${GHCFG.owner}/${GHCFG.repo}`,obase=`${GHCFG.api}/repos/${GHCFG.owner}/${GHCFG.ownerRepo}`;
   const fail=async r=>{let m="";try{m=(await r.json()).message||"";}catch(e){}
     return {code:r.status===401?"gh_auth":r.status===404?"gh_notfound":(r.status===403&&/not accessible/i.test(m))?"gh_readonly":(r.status===403||r.status===429)?"gh_limit":(r.status===409||r.status===422)?"gh_conflict":"gh_http",status:r.status,message:m};};
   const req=async(method,path,o)=>{o=o||{};let r;
-    try{r=await fetch(base+path,{method,headers:{Authorization:"Bearer "+token,Accept:o.accept||"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"},body:o.body?JSON.stringify(o.body):undefined,cache:"no-store"});}
+    try{r=await fetch((o.base||base)+path,{method,headers:{Authorization:"Bearer "+token,Accept:o.accept||"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"},body:o.body?JSON.stringify(o.body):undefined,cache:"no-store"});}
     catch(e){throw {code:"gh_net"};}
     if(!r.ok)throw await fail(r);return r;};
   const FILES={reviews:"reviews.json",analytics:"analytics.json",edits:"edits.json",skills:"skills.json",config:"config.json",status:"status.json"};
   const LISTS=["reviews","analytics","edits","skills"];
   const state={reviews:[],analytics:[],edits:[],skills:[],config:null,status:null,inbox:{decisions:{},requests:{},skills:{},config:{}}};
   const blobs=new Map(),subs=[];          // блобы неизменяемы: sha → разобранный JSON
-  let head="",tree={},busy=false;
-  async function blob(sha){if(blobs.has(sha))return blobs.get(sha);const r=await req("GET","/git/blobs/"+sha,{accept:"application/vnd.github.raw+json"});let j=null;try{j=JSON.parse(await r.text());}catch(e){}blobs.set(sha,j);return j;}
+  let head="",tree={},busy=false,ohead="",otree={},ocfg={},ownerKey=false,ownerChecked=false;
+  async function blob(sha,b){if(blobs.has(sha))return blobs.get(sha);const r=await req("GET","/git/blobs/"+sha,{accept:"application/vnd.github.raw+json",base:b});let j=null;try{j=JSON.parse(await r.text());}catch(e){}blobs.set(sha,j);return j;}
+  async function loadOwner(){          // хранилище владельца: писать и читать его может только ключ владельца — так определяется роль
+    if(!ownerChecked){ownerChecked=true;try{await req("GET","",{base:obase});ownerKey=true;}catch(e){ownerKey=false;}if(opts.onRole)opts.onRole(ownerKey);}
+    if(!ownerKey)return false;
+    try{
+      const oh=(await (await req("GET","/commits/"+encodeURIComponent(GHCFG.branch),{accept:"application/vnd.github.sha",base:obase})).text()).trim();
+      if(oh===ohead)return false;
+      const t=await (await req("GET","/git/trees/"+oh+"?recursive=1",{base:obase})).json(),nt={},cfg={},jobs=[];
+      (t.tree||[]).forEach(e=>{if(e.type==="blob")nt[e.path]=e.sha;});
+      Object.keys(nt).forEach(p=>{const m=/^inbox\/config\/([^\/]+)\.json$/.exec(p);if(m)jobs.push(blob(nt[p],obase).then(j=>{if(j&&typeof j==="object")cfg[m[1]]=j;}));});
+      await Promise.all(jobs);otree=nt;ocfg=cfg;ohead=oh;return true;
+    }catch(e){return false;}
+  }
   async function load(){
+    const och=await loadOwner();
     const h=(await (await req("GET","/commits/"+encodeURIComponent(GHCFG.branch),{accept:"application/vnd.github.sha"})).text()).trim();
-    if(h===head)return false;
+    if(h===head){if(och)state.inbox=Object.assign({},state.inbox,{config:ocfg});return och;}
     const t=await (await req("GET","/git/trees/"+h+"?recursive=1")).json(),nt={};
     (t.tree||[]).forEach(e=>{if(e.type==="blob")nt[e.path]=e.sha;});
     const next={},inbox={decisions:{},requests:{},skills:{},config:{}},jobs=[];
     Object.keys(FILES).forEach(k=>{const sha=nt[FILES[k]];jobs.push(sha?blob(sha).then(j=>{next[k]=j;}):Promise.resolve());});
-    Object.keys(nt).forEach(p=>{const m=/^inbox\/(decisions|requests|skills|config)\/([^\/]+)\.json$/.exec(p);if(m)jobs.push(blob(nt[p]).then(j=>{if(j&&typeof j==="object")inbox[m[1]][m[2]]=j;}));});
+    Object.keys(nt).forEach(p=>{const m=/^inbox\/(decisions|requests|skills)\/([^\/]+)\.json$/.exec(p);if(m)jobs.push(blob(nt[p]).then(j=>{if(j&&typeof j==="object")inbox[m[1]][m[2]]=j;}));});
     await Promise.all(jobs);
     Object.keys(FILES).forEach(k=>{const v=next[k];state[k]=LISTS.includes(k)?(Array.isArray(v)?v:[]):((v&&typeof v==="object")?v:null);});
-    state.inbox=inbox;tree=nt;head=h;return true;
+    inbox.config=ocfg;state.inbox=inbox;tree=nt;head=h;return true;
   }
   const view={
     reviews:()=>state.reviews,analytics:()=>state.analytics,edits:()=>state.edits,
@@ -555,13 +568,14 @@ function ghDb(token,opts){
   const b64=s=>{const b=new TextEncoder().encode(s);let o="";for(let i=0;i<b.length;i+=0x8000)o+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(o);};
   const safe=id=>String(id).replace(/[^A-Za-z0-9_\-]/g,"_").slice(0,80);
   const urlOf=path=>"/contents/"+path.split("/").map(encodeURIComponent).join("/");
-  async function put(path,obj,msg){
+  async function put(path,obj,msg,b,tr){
+    tr=tr||tree;
     for(let i=0;i<3;i++){
-      const body={message:msg,content:b64(JSON.stringify(obj)),branch:GHCFG.branch};if(tree[path])body.sha=tree[path];
-      try{const j=await (await req("PUT",urlOf(path),{body})).json(),sha=j&&j.content&&j.content.sha;if(sha){tree[path]=sha;blobs.set(sha,obj);}return;}
+      const body={message:msg,content:b64(JSON.stringify(obj)),branch:GHCFG.branch};if(tr[path])body.sha=tr[path];
+      try{const j=await (await req("PUT",urlOf(path),{body,base:b})).json(),sha=j&&j.content&&j.content.sha;if(sha){tr[path]=sha;blobs.set(sha,obj);}return;}
       catch(e){
         if(e.code!=="gh_conflict"||i===2)throw e;
-        try{tree[path]=(await (await req("GET",urlOf(path)+"?ref="+encodeURIComponent(GHCFG.branch))).json()).sha;}catch(e2){if(e2.code==="gh_notfound")delete tree[path];else throw e2;}
+        try{tr[path]=(await (await req("GET",urlOf(path)+"?ref="+encodeURIComponent(GHCFG.branch),{base:b})).json()).sha;}catch(e2){if(e2.code==="gh_notfound")delete tr[path];else throw e2;}
         await new Promise(r=>setTimeout(r,300*(i+1)));
       }
     }
@@ -575,7 +589,8 @@ function ghDb(token,opts){
     }
     if(col==="config"&&id==="main"){
       const name=nowIso().replace(/[-:]/g,"").slice(0,15)+"-"+Math.random().toString(36).slice(2,6),o={patch:data,by:who(),ts:nowIso()};
-      await put(`inbox/config/${name}.json`,o,"сайт: настройки · "+who());state.inbox.config[name]=o;fire();return;
+      if(!ownerKey)throw {code:"gh_notowner"};          // настройки пишутся в хранилище владельца: ключ менеджера туда не пускают
+      await put(`inbox/config/${name}.json`,o,"сайт: настройки · "+who(),obase,otree);ocfg[name]=o;state.inbox.config=ocfg;fire();return;
     }
     if(col==="config")return;          // config/skills_rev здесь не нужен: воркер сам видит правки знаний в inbox
     throw {code:"gh_unsupported"};
@@ -594,7 +609,7 @@ function ghDb(token,opts){
 function showLogin(msg){
   $("login").hidden=false;$("lgErr").hidden=!msg;$("lgErr").textContent=msg||"";
   if(GHINVITE&&!$("lgToken").value){$("lgToken").value=GHINVITE;$("lgHint").textContent="Ключ доступа уже вставлен. Впишите своё имя и нажмите «Войти».";}
-  const a=ghAuth();if(a&&a.name&&!$("lgName").value)$("lgName").value=a.name;$("lgRole").value=(a&&S.role==="owner")?"owner":"manager";   // на новом устройстве по умолчанию «Менеджер»
+  const a=ghAuth();if(a&&a.name&&!$("lgName").value)$("lgName").value=a.name;
 }
 $("lgDemo").addEventListener("click",()=>{$("login").hidden=true;});
 $("lgGo").addEventListener("click",async()=>{
@@ -606,7 +621,6 @@ $("lgGo").addEventListener("click",async()=>{
   catch(e){err("Нет связи с интернетом. Попробуйте ещё раз.");return;}
   if(!r.ok){err(r.status===401?"Ключ не подошёл. Проверьте, что он скопирован целиком.":r.status===404?"Этот ключ не открывает данные магазина. Попросите у владельца новый.":"GitHub не ответил, попробуйте ещё раз через минуту.");return;}
   try{localStorage.setItem(GHKEY,JSON.stringify({token,name}));}catch(e){err("Браузер запретил сохранять ключ. Отключите режим инкогнито.");return;}
-  S.role=$("lgRole").value==="owner"?"owner":"manager";save();
   $("lgToken").value="";GHINVITE="";btn.disabled=false;
   if(dbase){location.reload();return;}          // повторный вход после отозванного ключа: начинаем с чистого листа
   $("login").hidden=true;connect();
@@ -615,7 +629,7 @@ $("lgGo").addEventListener("click",async()=>{
 async function connect(){
   try{if(window.claude&&window.claude.use){dbase=await window.claude.use("db");}}catch(e){dbase=null;}
   try{if(window.claude&&window.claude.use){sample=await window.claude.use("sample");}}catch(e){sample=null;}
-  if(!dbase&&GH_MODE){const a=ghAuth();if(!a||!a.token){showLogin("");renderTop();return;}GHUSER=a;dbase=ghDb(a.token,{who:()=>by(),onOk:()=>{if(dbError){dbError="";renderTop();}}});}
+  if(!dbase&&GH_MODE){const a=ghAuth();if(!a||!a.token){showLogin("");renderTop();return;}GHUSER=a;dbase=ghDb(a.token,{onRole:v=>{GHOWNER=!!v;needRender=false;render();},who:()=>by(),onOk:()=>{if(dbError){dbError="";renderTop();}}});}
   if(!dbase){renderTop();return;}
   const onErr=e=>{console.warn("db",e&&e.code);if(e&&e.code==="gh_auth"){showLogin("Ключ доступа не подошёл или был отозван. Введите новый.");return;}dbError=errText(e);renderTop();};
   const col=(name,key)=>{try{dbase.collection(name).onSnapshot(s=>{L[key]=s.docs.filter(d=>d.exists).map(d=>Object.assign({},d.data(),{id:d.id}));goLive();refresh();},onErr);}catch(e){onErr(e);}};
@@ -810,7 +824,7 @@ async function saveConfig(patch){
 }
 function renderRules(){
   const c=D.config(),ro=!isOwner();
-  $("rulesNote").innerHTML=ro?'Вы вошли как менеджер: правила только для просмотра. <button class="btn sm" id="btnBeOwner">Я владелец</button>':((LIVE||dbase)?"Изменения сохраняются сразу и применяются при следующем прогоне воркера, в течение получаса.":"Демо-режим: правила хранятся в этом браузере.");
+  $("rulesNote").innerHTML=ro?((GH_MODE&&dbase)?'Вы вошли с ключом менеджера: правила только для просмотра. Менять их может владелец, войдя со своим ключом.':'Вы вошли как менеджер: правила только для просмотра. <button class="btn sm" id="btnBeOwner">Я владелец</button>'):((LIVE||dbase)?"Изменения сохраняются сразу и применяются при следующем прогоне воркера, в течение получаса.":"Демо-режим: правила хранятся в этом браузере.");
   const bo=$("btnBeOwner");if(bo)bo.addEventListener("click",()=>{S.role="owner";save();toast("Вы вошли как владелец");renderRules();});
   $("cAuto5").classList.toggle("on",autoOn(c,5));$("cAuto4").classList.toggle("on",autoOn(c,4));$("cNoRet").classList.toggle("on",!!c.no_returns);$("cTg").classList.toggle("on",c.tg_mode==="summary");$("cPhoto").classList.toggle("on",!!c.photo_to_review);
   $("rulesList").innerHTML=[5,4,3,2,1,0].map(k=>{const r=c.rules[k]||DEFAULT_CONFIG.rules[k];return `<div class="rule">
@@ -985,6 +999,8 @@ function renderSettings(){
   $("statusBox").innerHTML=!LIVE?row("Данные","демо-примеры в этом браузере"):[row("Данные","живые, из базы сервиса"),st?row("Последний прогон",fmtDate(st.last_run)):"",st?row("Режим воркера",st.mode==="live"?"боевой: одобренное уходит на площадки":"тренировочный: на площадки ничего не уходит"):"",go("Автоответы",autoOn(c,5)&&autoOn(c,4)?"на 5★ и 4★":autoOn(c,5)?"только на 5★":autoOn(c,4)?"только на 4★":"выключены","rules"),go("Сводка в Telegram",c.tg_mode==="summary"?"включена"+(st&&st.tg_group?", группа «"+st.tg_group+"»":""):"выключена","rules"),go("Обучение",c.learning?"идёт":"остановлено","know"),st?row("Ждут проверки",`отзывов ${st.waiting_reviews}, вопросов ${st.waiting_questions}`):"",st&&st.left_new?row("Ещё не написано черновиков",String(st.left_new)):"",st&&st.errors&&st.errors.length?row("Ошибки отправки",st.errors.join("; ")):""].join("");
   $("statusBox").querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.go)));
   $("demoCard").hidden=LIVE||(GH_MODE&&!!dbase);
+  if(GH_MODE&&dbase){$("roleSeg").hidden=true;$("roleText").hidden=false;$("roleText").innerHTML=GHOWNER?"Вы вошли с <b>ключом владельца</b>.":"Вы вошли с <b>ключом менеджера</b>.";}
+  $("mkeyWrap").hidden=!isOwner();try{if(!$("mKey").value)$("mKey").value=localStorage.getItem("otklik.mkey")||"";}catch(e){}
   $("appCard").hidden=!GH_MODE;$("accessCard").hidden=!(GH_MODE&&GHUSER);$("btnInvite").hidden=!isOwner();$("inviteNote").hidden=!isOwner();if(GHUSER)$("accessText").textContent="Вы вошли как «"+GHUSER.name+"». Ключ доступа хранится только в этом браузере.";
 }
 let installEvt=null;          // Chrome сообщает, что сайт можно установить как приложение
@@ -992,7 +1008,11 @@ window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=
 $("btnInstall").addEventListener("click",async()=>{if(!installEvt)return;installEvt.prompt();try{await installEvt.userChoice;}catch(e){}installEvt=null;$("btnInstall").hidden=true;});
 $("btnInvite").addEventListener("click",async()=>{
   const a=ghAuth();if(!a||!a.token)return;
-  const link=location.origin+location.pathname+"#k="+a.token;
+  const mk=$("mKey").value.trim();
+  if(mk.length<20){toast("Сначала вставьте сюда ключ для сотрудников: он открывает отзывы и вопросы, но не правила.");$("mKey").focus();return;}
+  if(mk===a.token){toast("Это ваш ключ владельца. Сотрудникам нужен отдельный ключ менеджера.");return;}
+  try{localStorage.setItem("otklik.mkey",mk);}catch(e){}
+  const link=location.origin+location.pathname+"#k="+mk;
   try{await navigator.clipboard.writeText(link);toast("Ссылка скопирована. Отправьте её сотруднику личным сообщением.");}
   catch(e){const b=$("inviteBox");b.hidden=false;b.value=link;b.focus();b.select();toast("Скопируйте ссылку из поля и отправьте сотруднику личным сообщением.");}
 });
