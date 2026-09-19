@@ -1,0 +1,961 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%23145C6B%27/%3E%3Cpath d=%27M9 11h14v9H15l-4 3v-3H9z%27 fill=%27%23fff%27/%3E%3C/svg%3E">
+<title>Отклик</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F6F8FB;--surface:#FFFFFF;--surface2:#F1F4F8;--text:#1B242E;--muted:#66737F;--line:#E1E7EE;
+  --accent:#D99A1E;--accent-ink:#7A5306;--accent-soft:#FBF1D9;
+  --primary:#145C6B;--primary-ink:#FFFFFF;--primary-soft:#DDEFF2;
+  --good:#2F8F5B;--good-soft:#DFF3E7;--warn:#C98A10;--warn-soft:#FBEFD2;--bad:#C4433E;--bad-soft:#F9E0DF;
+  --wb:#7B2CBF;--wb-soft:#EFE3FA;--ozon:#005BFF;--ozon-soft:#E0EAFF;
+  --shadow:0 1px 2px rgba(23,32,41,.06),0 4px 14px rgba(23,32,41,.06);
+  --display:"Manrope","IBM Plex Sans",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --bg:#1A2129;--surface:#242D37;--surface2:#2D3743;--text:#EEF2F6;--muted:#A3B0BD;--line:#3A4652;
+  --accent:#F2BC4A;--accent-ink:#F8D98F;--accent-soft:#4A3A14;
+  --primary:#6FCBDB;--primary-ink:#0B1A1E;--primary-soft:#1B4650;
+  --good:#6BCF95;--good-soft:#1B4530;--warn:#EDB955;--warn-soft:#4A3A14;--bad:#F08A85;--bad-soft:#4E2826;
+  --wb:#C59DEE;--wb-soft:#39274F;--ozon:#8FB4FF;--ozon-soft:#1E3157;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 4px 14px rgba(0,0,0,.25);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#1A2129;--surface:#242D37;--surface2:#2D3743;--text:#EEF2F6;--muted:#A3B0BD;--line:#3A4652;
+  --accent:#F2BC4A;--accent-ink:#F8D98F;--accent-soft:#4A3A14;
+  --primary:#6FCBDB;--primary-ink:#0B1A1E;--primary-soft:#1B4650;
+  --good:#6BCF95;--good-soft:#1B4530;--warn:#EDB955;--warn-soft:#4A3A14;--bad:#F08A85;--bad-soft:#4E2826;
+  --wb:#C59DEE;--wb-soft:#39274F;--ozon:#8FB4FF;--ozon-soft:#1E3157;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 4px 14px rgba(0,0,0,.25);
+}
+:root[data-theme="dark"] .sw::after{background:#EEF2F6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.2}
+h1{font-size:22px;font-weight:800}
+h2{font-size:18px;font-weight:800}
+h3{font-size:15px;font-weight:600}
+p{margin:0}
+a{color:var(--primary)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+/* shell */
+.app{display:grid;grid-template-rows:auto 1fr auto;min-height:100vh}
+header.top{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);padding-block:10px;padding-inline:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-.01em}
+.logo .mark{width:26px;height:26px;border-radius:8px;background:var(--primary);color:var(--primary-ink);display:grid;place-items:center;font-size:14px}
+.pilot{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.gear{border:1px solid var(--line);background:var(--surface);border-radius:10px;width:38px;height:38px;display:grid;place-items:center;cursor:pointer;color:var(--muted)}
+.gear svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.gear.active{color:var(--primary);border-color:var(--primary)}
+.sect{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:6px}
+.sect h2{font-size:16px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.dot.on{background:var(--good);box-shadow:0 0 0 4px var(--good-soft)}
+main{padding-inline:16px;padding-block:16px 96px;max-width:920px;width:100%;margin:0 auto}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
+nav.tabs button{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:6px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted);cursor:pointer;position:relative}
+nav.tabs button:hover{filter:brightness(.97)}
+nav.tabs button.active{background:var(--primary-soft);border-color:var(--primary)}
+nav.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button.active{color:var(--primary);font-weight:600}
+nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 6px);background:var(--bad);color:#fff;font-size:10px;font-weight:600;border-radius:9px;padding:0 5px;line-height:16px}
+@media (min-width:900px){
+  .app{grid-template-columns:200px 1fr;grid-template-rows:auto 1fr}
+  header.top{grid-column:1/-1}
+  nav.tabs{position:sticky;top:57px;bottom:auto;align-self:start;height:calc(100vh - 57px);grid-template-columns:1fr;grid-template-rows:repeat(6,auto) 1fr;gap:6px;border-top:0;border-right:1px solid var(--line);padding:12px 8px}
+  nav.tabs button{flex-direction:row;justify-content:flex-start;gap:10px;font-size:14px;padding:10px 12px;border-radius:10px}
+  nav.tabs button.active{background:var(--primary-soft)}
+  nav.tabs .badge{position:static;margin-left:auto}
+  main{padding-block:24px 40px;padding-inline:32px}
+}
+.page{display:none}.page.active{display:block}
+
+/* components */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:40px;transition:filter .12s}
+.btn:hover{filter:brightness(.97)}
+.btn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.btn.primary{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:6px 10px;min-height:32px;font-size:13px}
+.btn[disabled]{opacity:.5;cursor:default}
+.chip{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;line-height:18px;border:1px solid transparent}
+.chip.wb{background:var(--wb-soft);color:var(--wb)}
+.chip.ozon{background:var(--ozon-soft);color:var(--ozon)}
+.chip.auto{background:var(--good-soft);color:var(--good)}
+.chip.review{background:var(--warn-soft);color:var(--warn)}
+.chip.manual{background:var(--surface2);color:var(--muted)}
+.chip.sent{background:var(--primary-soft);color:var(--primary)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filters button{white-space:nowrap;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
+.filters button.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.stars{color:var(--accent);letter-spacing:1px;font-size:14px}
+.stars .off{color:var(--line)}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.stat .n{font-family:var(--display);font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .n.warn{color:var(--warn)}.stat .n.good{color:var(--good)}
+textarea{width:100%;border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:10px;min-height:96px;resize:vertical;line-height:1.5}
+input[type=text],input[type=password],select{width:100%;border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:9px 10px;min-height:40px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:500}
+.seg{display:inline-grid;grid-auto-flow:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface2)}
+.seg button{border:0;background:transparent;padding:7px 10px;font-size:13px;cursor:pointer;color:var(--muted)}
+.seg button.active{background:var(--surface);color:var(--text);font-weight:600;box-shadow:inset 0 0 0 1px var(--line)}
+.seg button.active[data-v=auto]{color:var(--good)}.seg button.active[data-v=draft]{color:var(--warn)}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.toggle:first-child{border-top:0}
+.sw{position:relative;width:44px;height:26px;border-radius:13px;background:var(--line);border:0;cursor:pointer;flex:none;transition:background .15s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.sw.on{background:var(--good)}.sw.on::after{transform:translateX(18px)}
+
+/* review card */
+.rev{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;border-left:4px solid var(--line)}
+.rev.s-review{border-left-color:var(--warn)}
+.rev.s-auto,.rev.s-sent{border-left-color:var(--good)}
+.rev.s-manual{border-left-color:var(--muted)}
+.rev .head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rev .who{font-weight:600}
+.rev .prod{font-size:13px;color:var(--muted)}
+.rev .txt{white-space:pre-wrap}
+.pc{display:grid;gap:4px;font-size:13px}
+.pc span b{font-weight:600}
+.pc .plus b{color:var(--good)}.pc .minus b{color:var(--bad)}
+.reply{background:var(--surface2);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.reply .lbl{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.reply .body{white-space:pre-wrap}
+.checks{display:flex;gap:6px;flex-wrap:wrap}
+.checks .chip{font-weight:500}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions .btn{flex:1 1 auto;justify-content:center}
+@media (min-width:600px){.actions .btn{flex:0 0 auto}}
+
+/* rules */
+.rule{display:grid;grid-template-columns:1fr;gap:10px;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.rule .rh{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.rule .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:480px){.rule .opts{grid-template-columns:1fr}}
+
+/* skills */
+.skill{display:flex;flex-direction:column;gap:6px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.skill .bar{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden}
+.skill .bar i{display:block;height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+.lvl{font-family:var(--display);font-weight:800;font-size:13px;color:var(--accent-ink)}
+.ex{display:grid;gap:6px;padding:10px;border:1px dashed var(--line);border-radius:10px;font-size:13px}
+.ex .was{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--bad)}
+.grade{display:flex;flex-direction:column;gap:8px}
+.grade .score{font-family:var(--display);font-size:34px;font-weight:800;color:var(--accent-ink);line-height:1}
+.grade ul{margin:0;padding-left:18px}
+
+/* charts */
+.bars{display:flex;align-items:flex-end;gap:4px;height:90px}
+.bars div{flex:1;background:var(--primary);border-radius:3px 3px 0 0;min-height:2px;opacity:.85}
+.bars div.neg{background:var(--bad)}
+.axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.dist{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;font-size:13px;font-variant-numeric:tabular-nums}
+.dist .b{height:10px;background:var(--surface2);border-radius:5px;overflow:hidden}
+.dist .b i{display:block;height:100%;background:var(--accent)}
+.reasons{display:grid;gap:6px}
+.reasons div{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;background:var(--surface2);border-radius:8px;font-size:13px}
+
+.tbl{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.tbl th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line)}
+.tbl td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td.n{text-align:right;white-space:nowrap}.tbl th.n{text-align:right}
+.tbl td.bad{color:var(--bad);font-weight:600}.tbl td.good{color:var(--good)}
+.tbl tr:last-child td{border-bottom:0}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;box-shadow:var(--shadow);z-index:50;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100% - 32px)}
+.toast.show{opacity:1}
+@media (min-width:900px){.toast{bottom:24px}}
+.empty{text-align:center;color:var(--muted);padding:32px 12px}
+.note{font-size:13px;color:var(--muted);padding:10px 12px;background:var(--surface2);border-radius:10px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--primary);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* v2 */
+html,body{max-width:100%;overflow-x:hidden}
+main,.stack,.card,.rev,.reply,.rule{min-width:0}
+.txt,.reply .body,.skill-item .body,.ex,.prod,.pc{overflow-wrap:anywhere}
+nav.tabs{grid-template-columns:repeat(5,1fr)}
+@media (min-width:900px){nav.tabs{grid-template-columns:1fr;grid-template-rows:repeat(5,auto) 1fr}}
+.seg.wide{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;width:100%}
+.seg.wide button{padding:9px 6px;min-height:40px}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.filters button{min-height:36px}
+details.facts{background:var(--surface2);border-radius:10px;padding:8px 12px;font-size:13px}
+details.facts summary{cursor:pointer;color:var(--primary);font-weight:500}
+details.facts div{margin-top:6px;color:var(--muted)}
+.skill-item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.skill-item.off{opacity:.6}
+.skill-item summary{cursor:pointer;display:flex;gap:8px;align-items:center;flex-wrap:wrap;list-style:none}
+.skill-item summary::-webkit-details-marker{display:none}
+.skill-item .body{white-space:pre-wrap;margin:10px 0 6px;font-size:14px}
+.skill-item .actions{margin-top:8px}
+.rev.s-sent{border-left-color:var(--good)}
+.rule .rh{flex-wrap:wrap}
+#skillSearch{width:100%}
+button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55;cursor:not-allowed}
+.tbl th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
+.tbl th.sortable:hover{color:var(--primary)}
+.sortbox{max-width:260px}
+/* Аналитика: блоки постоянного размера — при смене периода и магазина меняются только данные */
+#page-stats .stat{display:flex;flex-direction:column;gap:2px}
+#page-stats .stat .eyebrow{line-height:14px;height:28px;overflow:hidden}
+#page-stats .stat .n{line-height:30px;height:30px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat .sub{font-size:12px;line-height:16px;height:16px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#page-stats .dist{grid-template-columns:28px 1fr 48px}
+#page-stats .dist span:nth-child(3n){text-align:right}
+#page-stats .reasons{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+#page-stats .reasons div{min-width:0;align-items:center}
+#page-stats .reasons div span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reasons div.zero{opacity:.45}
+.fixh{overflow:auto;-webkit-overflow-scrolling:touch}
+.fixh.cat{height:300px}.fixh.prod{height:420px}
+.fixh .tbl th{position:sticky;top:0;z-index:1;background:var(--surface);border-bottom:0;box-shadow:inset 0 -1px 0 var(--line)}
+#page-stats .tbl{table-layout:fixed;min-width:620px}
+#page-stats .tbl th[data-k="n"]{width:96px}#page-stats .tbl th[data-k="avg"]{width:66px}#page-stats .tbl th[data-k="neg"]{width:74px}#page-stats .tbl th[data-k="neg_share"]{width:80px}#page-stats .tbl th[data-k="unanswered"]{width:124px}
+.tbl th .sm{display:none}
+@media (max-width:600px){
+#page-stats .tbl{min-width:475px}
+#page-stats .tbl th,#page-stats .tbl td{padding-inline:6px}
+#page-stats .tbl th[data-k="n"]{width:64px}#page-stats .tbl th[data-k="avg"]{width:55px}#page-stats .tbl th[data-k="neg"]{width:64px}#page-stats .tbl th[data-k="neg_share"]{width:64px}#page-stats .tbl th[data-k="unanswered"]{width:98px}
+.tbl th .lg{display:none}.tbl th .sm{display:inline}
+}
+#page-stats .tbl td:first-child{overflow-wrap:anywhere}
+.tbl tr.cur td{background:var(--surface2);font-weight:600}
+/* Вход по ключу доступа (когда сайт открыт с GitHub, а не внутри Claude) */
+.login{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.login[hidden]{display:none}
+.login .card{max-width:420px;width:100%;box-shadow:var(--shadow)}
+.rq{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.rq[hidden]{display:none}.rq input{flex:1;min-width:180px}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div class="logo"><span class="mark">✎</span>Отклик</div>
+  <div class="pilot"><span class="dot" id="runDot"></span><span id="runText">Загрузка…</span></div>
+  <button class="gear" id="btnTheme" aria-label="Тема" title="Светлая / тёмная"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c-4 1-8-3-9-9z"/></svg></button>
+  <button class="gear" id="btnSettings" aria-label="Настройки" title="Настройки"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+</header>
+
+<nav class="tabs" id="nav">
+  <button data-page="reviews"><svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.3.9-4.5 4.4 1 6.1L12 17l-5.5 3 1-6.1L3 9.5l6.3-.9z"/></svg>Отзывы<span class="badge" id="badgeR" hidden></span></button>
+  <button data-page="questions"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg>Вопросы<span class="badge" id="badgeQ" hidden></span></button>
+  <button data-page="rules"><svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Правила</button>
+  <button data-page="know"><svg viewBox="0 0 24 24"><path d="M4 19V6a2 2 0 0 1 2-2h12v15H6a2 2 0 0 0-2 2z"/><path d="M8 8h8M8 12h6"/></svg>Знания</button>
+  <button data-page="stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Аналитика</button>
+</nav>
+
+<main>
+<div class="note" id="moveNote" hidden style="margin-bottom:12px">Идёт переезд на этот сайт. Всё, что вы здесь сделаете, сохранится и применится после переключения. До переключения рабочий сайт прежний.</div>
+<!-- ОТЗЫВЫ и ВОПРОСЫ: одна разметка на два раздела -->
+<section class="page" id="page-reviews"></section>
+<section class="page" id="page-questions"></section>
+
+<!-- ПРАВИЛА -->
+<section class="page" id="page-rules">
+  <div class="stack">
+    <div><h1>Правила</h1><p class="muted small" id="rulesNote"></p></div>
+    <div class="card stack">
+      <div class="toggle"><div><b>Автопилот для 4–5★</b><div class="small muted">Выключен: каждый ответ ждёт вашей кнопки «Отправить». Включён: на отзывы с режимом «отвечает сам» ответ уходит без проверки. Вопросы сами не уходят никогда.</div></div><button class="sw" id="cAutopilot" aria-label="Автопилот"></button></div>
+      <div class="toggle"><div><b>Сводка в Telegram</b><div class="small muted">Одно короткое сообщение ботом в рабочую группу магазина, когда появилось новое на проверку. Никого не отмечает.</div></div><button class="sw" id="cTg" aria-label="Сводка в Telegram"></button></div>
+      <div class="toggle"><div><b>Отзывы с фото — всегда на проверку</b><div class="small muted">Фото чаще всего про брак или несоответствие</div></div><button class="sw" id="cPhoto" aria-label="Фото на проверку"></button></div>
+    </div>
+    <h2>По оценкам</h2>
+    <div class="stack" id="rulesList"></div>
+    <div class="card stack">
+      <h2>Голос магазина</h2>
+      <div class="grid2">
+        <label class="f">Название магазина<input type="text" id="cBrand"></label>
+        <label class="f">Подпись в конце ответа<input type="text" id="cSigner"></label>
+      </div>
+      <label class="f">Обращение<select id="cAddress"><option value="вы">на «вы»</option><option value="ты">на «ты»</option></select></label>
+      <label class="f">Стоп-слова через запятую. Отзыв с ними всегда идёт на проверку<textarea id="cStop" style="min-height:64px"></textarea></label>
+      <label class="f">Что нельзя обещать<input type="text" id="cNever"></label>
+      <div class="row"><button class="btn primary" id="btnSaveVoice">Сохранить</button><span class="small muted" id="voiceSaved"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ЗНАНИЯ -->
+<section class="page" id="page-know">
+  <div class="stack">
+    <div><h1>Знания</h1><p class="muted small">Всё, что сервис усвоил и использует в ответах. Обучение идёт по ходу работы: из ваших правок и ответов. Любое знание можно поправить, выключить или удалить.</p></div>
+    <div class="card"><div class="toggle"><div><b id="learnTitle">Обучение идёт</b><div class="small muted" id="learnNote"></div></div><button class="btn" id="btnLearn">Стоп обучение</button></div></div>
+    <div class="card stack" id="skillForm">
+      <h2 id="sfTitle">Добавить знание</h2>
+      <div class="grid2">
+        <label class="f">Вид<select id="sfKind"><option value="rule">Правило ответа</option><option value="style">Стиль</option><option value="product">Знание о товаре</option></select></label>
+        <label class="f">Где применять<select id="sfScope"><option value="all">Везде</option><option value="reviews">Только отзывы</option><option value="questions">Только вопросы</option></select></label>
+      </div>
+      <label class="f" id="sfArtWrap">Артикул продавца (для знания о товаре)<input type="text" id="sfArt" placeholder="например: Уплотнитель белый"></label>
+      <label class="f">Короткое название<input type="text" id="sfName" placeholder="например: Не желтеет"></label>
+      <label class="f">Текст знания<textarea id="sfText" placeholder="Факт или правило одной-двумя фразами. Для товара можно списком, по строке на факт."></textarea></label>
+      <div class="actions"><button class="btn primary" id="btnSkillSave">Сохранить</button><button class="btn ghost" id="btnSkillCancel" hidden>Отмена</button></div>
+    </div>
+    <div class="sect"><h2>Стиль и правила</h2><span class="small muted" id="cntStyle"></span></div>
+    <div class="stack" id="skillsStyle"></div>
+    <div class="sect"><h2>Знания о товарах</h2><span class="small muted" id="cntProd"></span></div>
+    <input type="text" id="skillSearch" placeholder="Поиск по артикулу или тексту">
+    <div class="stack" id="skillsProd"></div>
+    <div class="sect"><h2>Память правок</h2><span class="small muted">ваши исправления черновиков: было → стало</span></div>
+    <div class="stack" id="editsList"></div>
+  </div>
+</section>
+
+<!-- АНАЛИТИКА -->
+<section class="page" id="page-stats">
+  <div class="stack">
+    <div><h1>Аналитика отзывов</h1><p class="muted small" id="statNote"></p></div>
+    <div class="seg wide" id="statScope"><button data-v="all">Все вместе</button><button data-v="kab1">WB Каб 1</button><button data-v="kab2">WB Каб 2</button></div>
+    <div class="seg wide" id="statDays"><button data-v="7">7 дней</button><button data-v="30">30 дней</button><button data-v="90">90 дней</button><button data-v="180">180 дней</button></div>
+    <div class="grid2">
+      <div class="stat"><div class="eyebrow">Отзывов за период</div><div class="n" id="aRev">0</div><div class="sub" id="aRevSub"></div></div>
+      <div class="stat"><div class="eyebrow">Средняя оценка</div><div class="n" id="aAvg">—</div><div class="sub" id="aAvgSub"></div></div>
+      <div class="stat"><div class="eyebrow">Изменение средней</div><div class="n" id="aTrend">—</div><div class="sub" id="aTrendSub"></div></div>
+      <div class="stat"><div class="eyebrow">Негатив 1–3★</div><div class="n warn" id="aNeg">0</div><div class="sub" id="aNegSub"></div></div>
+      <div class="stat"><div class="eyebrow">Без ответа</div><div class="n" id="aUn">0</div><div class="sub">за этот период</div></div>
+    </div>
+    <div class="card stack" id="cmpCard"><h3>Сравнение магазинов</h3><div class="scroll"><table class="tbl" id="tblCab"></table></div></div>
+    <div class="card stack"><h3 id="barsTitle">Отзывы по дням</h3><div class="bars" id="bars"></div><div class="axis"><span id="ax0"></span><span>сегодня</span></div></div>
+    <div class="card stack"><h3>Распределение оценок</h3><div class="dist" id="dist"></div></div>
+    <div class="card stack"><h3>Причины негатива</h3><div class="reasons" id="reasons"></div></div>
+    <div class="card stack"><div class="row" style="justify-content:space-between"><h3>По категориям</h3><span class="small muted">нажмите на заголовок столбца для сортировки</span></div><div class="scroll fixh cat"><table class="tbl" id="tblCat"></table></div></div>
+    <div class="card stack"><div class="row" style="justify-content:space-between"><h3>По товарам</h3><span class="small muted">нажмите на заголовок столбца для сортировки</span></div><div class="scroll fixh prod"><table class="tbl" id="tblProd"></table></div></div>
+  </div>
+</section>
+
+<!-- НАСТРОЙКИ -->
+<section class="page" id="page-settings">
+  <div class="stack">
+    <div class="row"><button class="btn sm ghost" id="btnBack">← Назад</button></div>
+    <h1>Настройки</h1>
+    <div class="card stack">
+      <h2>Кто вы</h2>
+      <div class="row"><div class="seg" id="roleSeg"><button data-v="owner">Владелец</button><button data-v="manager">Менеджер</button></div></div>
+      <p class="small muted">Владелец меняет правила и автопилот. Менеджер проверяет очередь и пополняет знания. Сами правила, автопилот и Telegram настраиваются во вкладке «Правила».</p>
+    </div>
+    <div class="card stack"><h2>Состояние сервиса</h2><div class="reasons" id="statusBox"></div></div>
+    <div class="card stack">
+      <h2>Как это работает</h2>
+      <p class="small">Воркер на компьютере магазина раз в полчаса забирает новые отзывы и вопросы, пишет черновики и выкладывает их сюда. Вы проверяете и нажимаете «Отправить». При следующем прогоне ответ уходит на площадку. Отзывы Ozon по API недоступны, с Ozon приходят только вопросы.</p>
+    </div>
+    <div class="card stack" id="accessCard" hidden><h2>Доступ</h2><p class="small" id="accessText"></p><div class="row"><button class="btn" id="btnLogout">Выйти на этом устройстве</button></div></div>
+    <div class="card stack" id="demoCard"><h2>Демо-данные</h2><p class="small muted">Вернуть примеры к начальному виду. На живые данные не влияет.</p><button class="btn danger" id="btnReset">Сбросить демо</button></div>
+  </div>
+</section>
+</main>
+</div>
+<div class="login" id="login" hidden><div class="card stack">
+  <h1>Вход в «Отклик»</h1>
+  <p class="small muted">Введите ключ доступа. Его выдаёт владелец магазина. Ключ хранится только в этом браузере.</p>
+  <label class="f">Ваше имя<input id="lgName" type="text" maxlength="30" autocomplete="name" placeholder="Например: Анна"></label>
+  <label class="f">Кто вы<select id="lgRole"><option value="manager">Менеджер</option><option value="owner">Владелец</option></select></label>
+  <label class="f">Ключ доступа<input id="lgToken" type="password" autocomplete="off" placeholder="github_pat_…"></label>
+  <p class="small" id="lgErr" style="color:var(--bad)" hidden></p>
+  <div class="row"><button class="btn primary" id="lgGo">Войти</button><button class="btn ghost" id="lgDemo">Посмотреть демо</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ================= СПРАВОЧНИКИ ================= */
+const CABS=[{id:"kab1",label:"WB Каб 1",full:"WB · Каб 1",platform:"wb"},{id:"kab2",label:"WB Каб 2",full:"WB · Каб 2",platform:"wb"},{id:"oz",label:"Ozon",full:"Ozon",platform:"ozon"}];
+const TYPES={thanks:"Благодарность",thanks_reco:"Благодарность + рекомендация",clarify:"Разбор замечания",apology:"Извинение + решение",escalate:"Извинение + возврат по браку"};
+const TONES={friendly:"Дружелюбно",formal:"Официально",expert:"Экспертно"};
+const MODES={auto:"Отвечает сам",draft:"Черновик мне",manual:"Вручную"};
+const STAR_HINT={5:"довольные",4:"довольные с замечанием",3:"сомневаются",2:"недовольны",1:"очень недовольны",0:"только оценка, без текста"};
+const DEFAULT_CONFIG={learning:true,autopilot:false,tg_mode:"off",photo_to_review:true,brand:"Наш магазин",signer:"Команда магазина",address:"вы",
+  stop_words:["брак","подмена","верните деньги","суд","обман","мошенник","не тот товар","пустая коробка"],never_promise:"скидки, возврат денег напрямую, замену без оформления возврата, наличие на складе",
+  rules:{5:{mode:"auto",type:"thanks_reco",tone:"friendly"},4:{mode:"auto",type:"thanks",tone:"friendly"},3:{mode:"draft",type:"clarify",tone:"expert"},2:{mode:"draft",type:"apology",tone:"formal"},1:{mode:"manual",type:"escalate",tone:"formal"},0:{mode:"auto",type:"thanks",tone:"friendly"}}};
+const KEY="otklik.v3";
+
+/* ================= УТИЛИТЫ ================= */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clone=o=>JSON.parse(JSON.stringify(o));
+const ARM={};
+function ask(key,msg){const t=Date.now();if(ARM[key]&&t-ARM[key]<7000){delete ARM[key];return true;}ARM[key]=t;toast(msg+" Нажмите ещё раз, чтобы подтвердить.");return false;}
+const ERR_RU={invalid_argument:"база отклонила запись",quota_exceeded:"база переполнена",resource_exhausted:"слишком много запросов, подождите минуту",unavailable:"база временно недоступна",revoked:"доступ к базе отозван, обновите страницу",not_granted:"доступ к базе не выдан этой странице",not_found:"запись не найдена",no_db:"база не подключена",gh_auth:"ключ доступа не подходит или отозван",gh_notfound:"данные магазина не найдены, проверьте ключ доступа",gh_readonly:"ключ доступа только для чтения, попросите у владельца ключ с правом записи",gh_limit:"GitHub просит подождать: слишком много запросов",gh_conflict:"одновременная правка, попробуйте ещё раз",gh_http:"GitHub временно недоступен",gh_net:"нет связи с интернетом",gh_unsupported:"действие недоступно"};
+const errText=e=>(e&&e.code&&(ERR_RU[e.code]||e.code))||"неизвестная ошибка";
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),3200);}
+function fmtDate(v){const d=new Date(v);if(isNaN(d))return "";return d.toLocaleDateString("ru-RU",{day:"numeric",month:"short"})+", "+d.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});}
+function starsHtml(n){let s="";for(let i=1;i<=5;i++)s+=`<span class="${i<=n?"":"off"}">★</span>`;return `<span class="stars" aria-label="${n} из 5">${s}</span>`;}
+const cabOf=id=>CABS.find(c=>c.id===id)||CABS[0];
+const cabFull=c=>{const st=D.status();return (st&&st.cabs&&st.cabs[c.id])||c.full;};   // полные названия магазинов приходят из данных, в коде сайта их нет
+const normArt=a=>String(a||"").trim().toLowerCase().replace(/\s+/g," ");
+const newId=p=>p+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);
+
+function checkRules(t){
+  t=t||"";const out=[];
+  if(/https?:\/\/|www\.|\b[\w-]+\.(ru|com|рф|net|org)\b/i.test(t))out.push("ссылка");
+  if(/\+?\d[\d\s\-()]{8,}\d/.test(t))out.push("телефон");
+  if(/[\w.+-]+@[\w-]+\.\w+|(^|[^\w])@\w{3,}|telegram|whatsapp|ватсап|вотсап|телеграм|вайбер|viber/i.test(t))out.push("контакты");
+  if(/(^|[^A-Za-zА-Яа-яЁё])[A-ZА-ЯЁ]{5,}(?![A-Za-zА-Яа-яЁё])/.test(t))out.push("слово КАПСОМ");
+  if(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(t))out.push("смайлы");
+  if(/свяжитесь|напишите нам|позвоните|(измените|поменяйте|исправьте|удалите)\s+(оценку|отзыв)/i.test(t))out.push("просьба связаться или изменить оценку");
+  if(/!{2,}|\?{2,}/.test(t))out.push("лишняя пунктуация");
+  if(t.length>5000)out.push("длиннее 5000 знаков");
+  if(t.trim().length<10)out.push("ответ пустой");
+  return out;
+}
+
+/* ================= СОСТОЯНИЕ ================= */
+function demoSeed(){
+  const now=Date.now(),h=3600e3,iso=ms=>new Date(now-ms).toISOString();
+  const R=(id,kab,kind,stars,art,product,category,user,text,cons,reply,status,extra)=>Object.assign({id,kab,kind,stars,art,product,category,user,text,pros:"",cons,photo:0,created:iso((parseInt(id.slice(1))*5+2)*h),status,reason:"",reply,reply_src:"ИИ",no_facts:0,top3:0,sent:null,sent_by:null,err:null,facts:""},extra||{});
+  return {
+    reviews:[
+      R("d1","kab1","review",1,"Рюкзак городской 20л","Рюкзак городской 20 л","Рюкзаки","Сергей","Пришёл с разошедшимся швом на кармане. Буду возвращать.","брак шва","Сергей, здравствуйте. Приносим извинения: шов так расходиться не должен. Оформите возврат по браку в личном кабинете, мы его подтвердим, а партию проверим.\nКоманда магазина","manual",{photo:1,top3:1,reason:"правило «вручную»"}),
+      R("d2","kab2","review",2,"Плед флис 150","Плед флисовый 150×200","Пледы","Ольга","Плед тоньше, чем на фото. Размер соответствует.","тонкий","Ольга, здравствуйте. Жаль, что плед оказался тоньше, чем вы ожидали. Плотность указана в характеристиках, но по фото её оценить трудно, мы это учтём. Возврат можно оформить в личном кабинете.\nКоманда магазина","draft",{reason:"негатив — на проверку"}),
+      R("d3","kab1","review",3,"Коврик йога 6мм","Коврик для йоги 183×61","Коврики для йоги","Дмитрий","Коврик неплохой, но запах резины первые дни сильный.","запах","Дмитрий, спасибо за честный отзыв. Запах нового материала обычно уходит за два-три дня в проветриваемом месте. Замечание передали на производство.\nКоманда магазина","draft",{reason:"стоп-слов нет, оценка 3★"}),
+      R("d4","kab1","review",5,"Термокружка 500","Термокружка 500 мл","Термокружки","Анна","Держит тепло часа четыре, крышка плотная. Беру вторую в подарок.","","Анна, спасибо, что рассказали про подарок. Рады, что кружка держит тепло так, как нужно.\nКоманда магазина","draft",{reason:"автопилот выключен"}),
+      R("d5","kab2","review",5,"Контейнеры 5шт","Набор контейнеров 5 шт","Контейнеры","Ирина","Плотно закрываются, ничего не течёт.","","Ирина, спасибо за отзыв. Приятно, что контейнеры не подводят.\nКоманда магазина","sent",{sent:iso(30*h),sent_by:"manual"}),
+      R("d6","kab1","question",0,"Уплотнитель белый","Уплотнитель самоклеящийся 10 м","Уплотнители","Оксана Б.","Не желтеет ли со временем?","","Здравствуйте. Уплотнитель сделан из EPDM-резины, на солнце не желтеет.\nКоманда магазина","draft",{reason:"вопрос покупателя",facts:"Название: Уплотнитель самоклеящийся 10 м; Материал: EPDM-резина; Цвет: белый; Длина: 10 м"}),
+      R("d7","oz","question",0,"стик","Игровая приставка Game Stick Pro","Игровые консоли","Александр С.","Есть ли Мортал Комбат 3 на сеге?","","Здравствуйте. Уточним список игр и дополним карточку товара.\nКоманда магазина","draft",{no_facts:1,reason:"нет данных в карточке — нужен ответ менеджера",facts:"Название: Игровая приставка Game Stick Pro; 20000 игр, 64 ГБ, HDMI"}),
+      R("d8","kab2","question",0,"Сушилка PHDZ-09","Сушилка для белья электрическая","Сушилки","","Издаёт ли она шум при работе?","","Здравствуйте. Сушилка работает без вентилятора, поэтому шума нет.\nКоманда магазина","sent",{sent:iso(50*h),sent_by:"manual"})
+    ],
+    skills:[
+      {id:"k1",kind:"style",title:"Без штампов",text:"Не писать «благодарим за уделённое время», «ждём вас снова», «нам очень приятно, что вы так высоко оценили».",scope:"all",art:"",enabled:true,source:"manual"},
+      {id:"k2",kind:"rule",title:"Брак — только через площадку",text:"При браке предлагать оформить возврат по браку в личном кабинете площадки. Деньги напрямую и замену без возврата не обещать.",scope:"reviews",art:"",enabled:true,source:"manual"},
+      {id:"k3",kind:"product",title:"Уплотнитель самоклеящийся",text:"Материал EPDM-резина, не желтеет.\nМягкий, сжимается до 2 мм.\nКлеится на обезжиренную сухую поверхность при температуре выше +5.",scope:"questions",art:"Уплотнитель белый",enabled:true,source:"learning"}
+    ],
+    edits:[{id:"e1",review_id:"d5",kind:"review",stars:5,product:"Набор контейнеров 5 шт",art:"Контейнеры 5шт",review_text:"Плотно закрываются, ничего не течёт.",was:"Здравствуйте! Спасибо за ваш положительный отзыв! Мы рады, что товар вам понравился.",final:"Ирина, спасибо за отзыв. Приятно, что контейнеры не подводят.",ts:iso(31*h),learned:1}],
+    config:clone(DEFAULT_CONFIG),status:null
+  };
+}
+function loadState(){
+  let s=null;try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){}
+  if(!s||!s.demo||!Array.isArray(s.demo.reviews))s={page:"reviews",tab:{reviews:"wait",questions:"wait"},cab:{reviews:"all",questions:"all"},role:"owner",demo:demoSeed()};
+  s.tab=s.tab||{reviews:"wait",questions:"wait"};s.cab=s.cab||{reviews:"all",questions:"all"};s.role=s.role||"owner";
+  return s;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+var S=loadState();
+
+/* ================= ДАННЫЕ: живая база или демо ================= */
+let dbase=null,sample=null,LIVE=false,cfgReady=false,cfgExists=false,cfgBusy=false,dbError="";
+const L={reviews:[],skills:[],edits:[],decisions:[],analytics:[],requests:[],config:null,status:null};
+const DRAFTS={};            // набранный, но не отправленный текст: id → строка
+let needRender=false;
+const D={
+  reviews:()=>LIVE?overlay(L.reviews,L.decisions):((GH_MODE&&dbase)?[]:S.demo.reviews),
+  skills:()=>(LIVE||dbase)?L.skills:S.demo.skills,
+  edits:()=>(LIVE||dbase)?L.edits:S.demo.edits,
+  config:()=>{const c=(LIVE||dbase)?(L.config||{}):S.demo.config;const out=Object.assign(clone(DEFAULT_CONFIG),c||{});out.rules=Object.assign(clone(DEFAULT_CONFIG.rules),(c&&c.rules)||{});return out;},
+  status:()=>LIVE?L.status:null
+};
+function overlay(list,decs){
+  if(!decs.length)return list;const m={};decs.forEach(d=>{m[d.id]=d;});
+  return list.map(r=>{const d=m[r.id];if(!d||r.status==="sent"||r.status==="gone")return r;
+    if(d.action==="send")return Object.assign({},r,{status:"approved",reply:d.text||r.reply,no_facts:0,reason:"одобрил: "+(d.by||"")});
+    if(d.action==="skip")return Object.assign({},r,{status:"skipped"});
+    if(d.action==="manual")return Object.assign({},r,{status:"manual",reason:"возвращён на проверку: "+(d.by||"")});
+    return r;});
+}
+const isOwner=()=>S.role==="owner";
+function typing(){const a=document.activeElement;return a&&(a.tagName==="TEXTAREA"||a.tagName==="SELECT"||(a.tagName==="INPUT"&&a.type==="text"));}
+let voiceDirty=false;
+function refresh(){if(typing()){needRender=true;return;}needRender=false;render();}
+document.addEventListener("focusout",()=>{setTimeout(()=>{if(needRender&&!typing())refresh();},150);});
+
+/* ================= GitHub как база: сайт открыт с GitHub Pages, а не внутри Claude =================
+   Сводные файлы (reviews.json, analytics.json, edits.json, skills.json, config.json, status.json) пишет только воркер.
+   Сайт только добавляет маленькие файлы в inbox/ — воркер забирает их при следующем прогоне. Поэтому конфликтов нет. */
+const GHCFG=Object.assign({owner:"andress8286-cpu",repo:"otklik-data",branch:"main",api:"https://api.github.com",poll:40000},window.OTKLIK_GH||{});
+const GH_MODE=!(window.claude&&window.claude.use)&&(!!window.OTKLIK_GH||/\.github\.io$/i.test(location.hostname)||/[?&]gh=1\b/.test(location.search));
+const GHKEY="otklik.gh";
+let GHUSER=null;
+function ghAuth(){try{return JSON.parse(localStorage.getItem(GHKEY))||null;}catch(e){return null;}}
+function ghDb(token,opts){
+  opts=opts||{};
+  const base=`${GHCFG.api}/repos/${GHCFG.owner}/${GHCFG.repo}`;
+  const fail=async r=>{let m="";try{m=(await r.json()).message||"";}catch(e){}
+    return {code:r.status===401?"gh_auth":r.status===404?"gh_notfound":(r.status===403&&/not accessible/i.test(m))?"gh_readonly":(r.status===403||r.status===429)?"gh_limit":(r.status===409||r.status===422)?"gh_conflict":"gh_http",status:r.status,message:m};};
+  const req=async(method,path,o)=>{o=o||{};let r;
+    try{r=await fetch(base+path,{method,headers:{Authorization:"Bearer "+token,Accept:o.accept||"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"},body:o.body?JSON.stringify(o.body):undefined,cache:"no-store"});}
+    catch(e){throw {code:"gh_net"};}
+    if(!r.ok)throw await fail(r);return r;};
+  const FILES={reviews:"reviews.json",analytics:"analytics.json",edits:"edits.json",skills:"skills.json",config:"config.json",status:"status.json"};
+  const LISTS=["reviews","analytics","edits","skills"];
+  const state={reviews:[],analytics:[],edits:[],skills:[],config:null,status:null,inbox:{decisions:{},requests:{},skills:{},config:{}}};
+  const blobs=new Map(),subs=[];          // блобы неизменяемы: sha → разобранный JSON
+  let head="",tree={},busy=false;
+  async function blob(sha){if(blobs.has(sha))return blobs.get(sha);const r=await req("GET","/git/blobs/"+sha,{accept:"application/vnd.github.raw+json"});let j=null;try{j=JSON.parse(await r.text());}catch(e){}blobs.set(sha,j);return j;}
+  async function load(){
+    const h=(await (await req("GET","/commits/"+encodeURIComponent(GHCFG.branch),{accept:"application/vnd.github.sha"})).text()).trim();
+    if(h===head)return false;
+    const t=await (await req("GET","/git/trees/"+h+"?recursive=1")).json(),nt={};
+    (t.tree||[]).forEach(e=>{if(e.type==="blob")nt[e.path]=e.sha;});
+    const next={},inbox={decisions:{},requests:{},skills:{},config:{}},jobs=[];
+    Object.keys(FILES).forEach(k=>{const sha=nt[FILES[k]];jobs.push(sha?blob(sha).then(j=>{next[k]=j;}):Promise.resolve());});
+    Object.keys(nt).forEach(p=>{const m=/^inbox\/(decisions|requests|skills|config)\/([^\/]+)\.json$/.exec(p);if(m)jobs.push(blob(nt[p]).then(j=>{if(j&&typeof j==="object")inbox[m[1]][m[2]]=j;}));});
+    await Promise.all(jobs);
+    Object.keys(FILES).forEach(k=>{const v=next[k];state[k]=LISTS.includes(k)?(Array.isArray(v)?v:[]):((v&&typeof v==="object")?v:null);});
+    state.inbox=inbox;tree=nt;head=h;return true;
+  }
+  const view={
+    reviews:()=>state.reviews,analytics:()=>state.analytics,edits:()=>state.edits,
+    decisions:()=>Object.entries(state.inbox.decisions).map(([id,d])=>Object.assign({},d,{id})),
+    requests:()=>Object.entries(state.inbox.requests).map(([id,d])=>Object.assign({},d,{id})),
+    skills:()=>{const m=new Map(state.skills.map(s=>[String(s.id),s]));Object.entries(state.inbox.skills).forEach(([k,s])=>{const id=String(s.id||k);if(s.deleted)m.delete(id);else m.set(id,Object.assign({},s,{id}));});return [...m.values()];}
+  };
+  const docView={
+    "config/main":()=>{let c=state.config?Object.assign({},state.config):null;
+      Object.keys(state.inbox.config).sort().forEach(k=>{const p=(state.inbox.config[k]||{}).patch||{};c=c||{};const rules=Object.assign({},c.rules);
+        Object.entries(p.rules||{}).forEach(([s,v])=>{rules[s]=Object.assign({},rules[s],v);});Object.assign(c,p);if(Object.keys(rules).length)c.rules=rules;});
+      return c;},
+    "status/worker":()=>state.status
+  };
+  const snapCol=name=>{const docs=(view[name]?view[name]():[]).map(d=>({id:String(d.id),exists:true,data:()=>d}));return {docs,size:docs.length,empty:!docs.length};};
+  const snapDoc=path=>{const d=docView[path]?docView[path]():null;return {id:path.split("/")[1],exists:!!d,data:()=>d};};
+  function fire(){subs.forEach(s=>{try{s.cb(s.kind==="col"?snapCol(s.name):snapDoc(s.name));}catch(e){console.warn("sub",e&&e.message);}});}
+  async function tick(force){
+    if(busy)return;busy=true;
+    try{const ch=await load();if(ch||force)fire();if(opts.onOk)opts.onOk();}
+    catch(e){subs.forEach(s=>{if(s.err){try{s.err(e);}catch(x){}}});}
+    busy=false;
+  }
+  const b64=s=>{const b=new TextEncoder().encode(s);let o="";for(let i=0;i<b.length;i+=0x8000)o+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(o);};
+  const safe=id=>String(id).replace(/[^A-Za-z0-9_\-]/g,"_").slice(0,80);
+  const urlOf=path=>"/contents/"+path.split("/").map(encodeURIComponent).join("/");
+  async function put(path,obj,msg){
+    for(let i=0;i<3;i++){
+      const body={message:msg,content:b64(JSON.stringify(obj)),branch:GHCFG.branch};if(tree[path])body.sha=tree[path];
+      try{const j=await (await req("PUT",urlOf(path),{body})).json(),sha=j&&j.content&&j.content.sha;if(sha){tree[path]=sha;blobs.set(sha,obj);}return;}
+      catch(e){
+        if(e.code!=="gh_conflict"||i===2)throw e;
+        try{tree[path]=(await (await req("GET",urlOf(path)+"?ref="+encodeURIComponent(GHCFG.branch))).json()).sha;}catch(e2){if(e2.code==="gh_notfound")delete tree[path];else throw e2;}
+        await new Promise(r=>setTimeout(r,300*(i+1)));
+      }
+    }
+  }
+  const who=()=>(opts.who?opts.who():"")||"",nowIso=()=>new Date().toISOString();
+  async function write(col,id,data){
+    if(col==="decisions"||col==="requests"||col==="skills"){
+      const key=safe(id),o=Object.assign({},data,{id:String(id)});
+      await put(`inbox/${col}/${key}.json`,o,"сайт: "+({decisions:"решение",requests:"заявка «переписать»",skills:"знание"})[col]+" · "+who());
+      state.inbox[col][key]=o;fire();return;
+    }
+    if(col==="config"&&id==="main"){
+      const name=nowIso().replace(/[-:]/g,"").slice(0,15)+"-"+Math.random().toString(36).slice(2,6),o={patch:data,by:who(),ts:nowIso()};
+      await put(`inbox/config/${name}.json`,o,"сайт: настройки · "+who());state.inbox.config[name]=o;fire();return;
+    }
+    if(col==="config")return;          // config/skills_rev здесь не нужен: воркер сам видит правки знаний в inbox
+    throw {code:"gh_unsupported"};
+  }
+  function doc(path){const i=path.indexOf("/"),col=path.slice(0,i),id=path.slice(i+1);return {id,path,
+    onSnapshot:(cb,err)=>{subs.push({kind:"doc",name:path,cb,err});if(head){try{cb(snapDoc(path));}catch(e){}}return ()=>{};},
+    set:data=>write(col,id,data),update:data=>write(col,id,data),
+    delete:async()=>{if(col!=="skills")throw {code:"gh_unsupported"};const key=safe(id),o={id:String(id),deleted:true,by:who(),ts:nowIso()};
+      await put(`inbox/skills/${key}.json`,o,"сайт: знание удалено · "+who());state.inbox.skills[key]=o;fire();}};}
+  function collection(name){return {path:name,doc:id=>doc(name+"/"+id),onSnapshot:(cb,err)=>{subs.push({kind:"col",name,cb,err});if(head){try{cb(snapCol(name));}catch(e){}}return ()=>{};}};}
+  setTimeout(()=>tick(true),0);
+  setInterval(()=>{if(document.visibilityState!=="hidden")tick(false);},GHCFG.poll);
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")tick(false);});
+  return {doc,collection,refresh:()=>tick(false)};
+}
+function showLogin(msg){
+  $("login").hidden=false;$("lgErr").hidden=!msg;$("lgErr").textContent=msg||"";
+  const a=ghAuth();if(a&&a.name&&!$("lgName").value)$("lgName").value=a.name;$("lgRole").value=(a&&S.role==="owner")?"owner":"manager";   // на новом устройстве по умолчанию «Менеджер»
+}
+$("lgDemo").addEventListener("click",()=>{$("login").hidden=true;});
+$("lgGo").addEventListener("click",async()=>{
+  const token=$("lgToken").value.trim(),name=$("lgName").value.trim(),btn=$("lgGo"),err=m=>{$("lgErr").hidden=false;$("lgErr").textContent=m;btn.disabled=false;};
+  if(name.length<2){err("Напишите ваше имя: оно будет видно рядом с вашими ответами.");return;}
+  if(token.length<20){err("Вставьте ключ доступа целиком.");return;}
+  btn.disabled=true;let r;
+  try{r=await fetch(`${GHCFG.api}/repos/${GHCFG.owner}/${GHCFG.repo}`,{headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"},cache:"no-store"});}
+  catch(e){err("Нет связи с интернетом. Попробуйте ещё раз.");return;}
+  if(!r.ok){err(r.status===401?"Ключ не подошёл. Проверьте, что он скопирован целиком.":r.status===404?"Этот ключ не открывает данные магазина. Попросите у владельца новый.":"GitHub не ответил, попробуйте ещё раз через минуту.");return;}
+  try{localStorage.setItem(GHKEY,JSON.stringify({token,name}));}catch(e){err("Браузер запретил сохранять ключ. Отключите режим инкогнито.");return;}
+  S.role=$("lgRole").value==="owner"?"owner":"manager";save();
+  $("lgToken").value="";btn.disabled=false;
+  if(dbase){location.reload();return;}          // повторный вход после отозванного ключа: начинаем с чистого листа
+  $("login").hidden=true;connect();
+});
+
+async function connect(){
+  try{if(window.claude&&window.claude.use){dbase=await window.claude.use("db");}}catch(e){dbase=null;}
+  try{if(window.claude&&window.claude.use){sample=await window.claude.use("sample");}}catch(e){sample=null;}
+  if(!dbase&&GH_MODE){const a=ghAuth();if(!a||!a.token){showLogin("");renderTop();return;}GHUSER=a;dbase=ghDb(a.token,{who:()=>by(),onOk:()=>{if(dbError){dbError="";renderTop();}}});}
+  if(!dbase){renderTop();return;}
+  const onErr=e=>{console.warn("db",e&&e.code);if(e&&e.code==="gh_auth"){showLogin("Ключ доступа не подошёл или был отозван. Введите новый.");return;}dbError=errText(e);renderTop();};
+  const col=(name,key)=>{try{dbase.collection(name).onSnapshot(s=>{L[key]=s.docs.filter(d=>d.exists).map(d=>Object.assign({},d.data(),{id:d.id}));goLive();refresh();},onErr);}catch(e){onErr(e);}};
+  const doc=(path,key)=>{try{dbase.doc(path).onSnapshot(s=>{L[key]=s.exists?Object.assign({},s.data()):null;if(key==="config"){cfgReady=true;cfgExists=s.exists;}goLive();refresh();},onErr);}catch(e){onErr(e);}};
+  col("reviews","reviews");col("decisions","decisions");col("analytics","analytics");col("skills","skills");col("edits","edits");doc("config/main","config");doc("status/worker","status");
+  if(GH_MODE)col("requests","requests");
+}
+function goLive(){if(!LIVE&&(L.reviews.length||L.status||L.skills.length||L.config)){LIVE=true;}}
+
+async function writeDoc(path,data,merge){
+  if(!dbase)throw {code:"no_db"};
+  const ref=dbase.doc(path);
+  if(merge)return ref.update(data);
+  return ref.set(data);
+}
+
+/* ================= НАВИГАЦИЯ ================= */
+const PAGES=["reviews","questions","rules","know","stats","settings"];
+function showPage(p){
+  if(!PAGES.includes(p))p="reviews";
+  S.page=p;save();
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
+  $("btnSettings").classList.toggle("active",p==="settings");
+  document.querySelectorAll(".page").forEach(s=>s.classList.toggle("active",s.id==="page-"+p));
+  needRender=false;render();window.scrollTo({top:0});
+}
+function render(){
+  renderTop();
+  ({reviews:()=>renderList("reviews"),questions:()=>renderList("questions"),rules:renderRules,know:renderKnow,stats:renderStats,settings:renderSettings})[S.page]();
+}
+const WAIT_ST=["new","draft","manual","auto"];
+function waitingOf(kind){return D.reviews().filter(r=>r.kind===kind&&WAIT_ST.includes(r.status));}
+function renderTop(){
+  const nr=waitingOf("review").length,nq=waitingOf("question").length;
+  const br=$("badgeR"),bq=$("badgeQ");br.hidden=!nr;br.textContent=nr;bq.hidden=!nq;bq.textContent=nq;
+  const st=D.status(),dot=$("runDot"),tx=$("runText");
+  $("moveNote").hidden=!(GH_MODE&&LIVE&&st&&!st.gh_inputs);
+  if(dbError){dot.className="dot";tx.textContent="Нет связи с базой: "+dbError;return;}
+  if(!LIVE){dot.className="dot";tx.textContent=dbase?(GH_MODE?"Загружаю данные…":"Демо: база пока пуста"):"Демо-режим";return;}
+  if(!st){dot.className="dot";tx.textContent="Данные живые";return;}
+  dot.className="dot"+(st.mode==="live"?" on":"");
+  tx.textContent=(st.mode==="live"?"Боевой режим":"Тренировочный режим")+" · прогон "+fmtDate(st.last_run)+(st.left_new?" · ещё пишутся: "+st.left_new:"");
+}
+
+/* ================= ОТЗЫВЫ / ВОПРОСЫ ================= */
+const byDate=(a,b)=>String(a.created).localeCompare(String(b.created));
+const SORT_LABEL={urgent:"Сначала срочные",newest:"Сначала новые",oldest:"Сначала старые",stars_low:"Сначала низкие оценки",stars_high:"Сначала высокие оценки",product:"По товару"};
+const SORTS={urgent:(a,b)=>urgency(a,b),newest:(a,b)=>byDate(b,a),oldest:byDate,stars_low:(a,b)=>(a.stars||9)-(b.stars||9)||byDate(a,b),stars_high:(a,b)=>(b.stars||0)-(a.stars||0)||byDate(a,b),product:(a,b)=>normArt(a.art||a.product).localeCompare(normArt(b.art||b.product))||byDate(a,b)};
+function urgency(a,b){return (b.top3?1:0)-(a.top3?1:0)||(a.stars||9)-(b.stars||9)||String(a.created).localeCompare(String(b.created));}
+function renderList(page){
+  const kind=page==="reviews"?"review":"question",isQ=kind==="question";
+  const tab=S.tab[page]||"wait",cab=S.cab[page]||"all";
+  const all=D.reviews().filter(r=>r.kind===kind&&(cab==="all"||r.kab===cab));
+  const sortKey=(S.sort&&S.sort[page])||"urgent";
+  const wait=all.filter(r=>WAIT_ST.includes(r.status)).sort(SORTS[sortKey]||urgency);
+  const doneDef=(a,b)=>String(b.sent||b.created).localeCompare(String(a.sent||a.created));
+  const done=all.filter(r=>r.status==="approved"||r.status==="sent").sort(sortKey==="urgent"?doneDef:(SORTS[sortKey]||doneDef));
+  const ready=wait.filter(r=>r.reply&&!r.no_facts&&r.status!=="manual"),fresh=wait.filter(r=>r.status==="new"&&!r.reply),need=wait.filter(r=>!(r.reply&&!r.no_facts&&r.status!=="manual")&&!(r.status==="new"&&!r.reply));
+  const box=$("page-"+page);
+  let html=`<div class="stack">
+    <div><h1>${isQ?"Вопросы покупателей":"Отзывы"}</h1><p class="muted small">${isQ?"Ответ строится только по карточке товара и разделу «Знания». Если данных нет, сервис не выдумывает, а ждёт вашего ответа и запоминает его.":"Сверху самое срочное: негатив в топ-3 ленты, затем низкие оценки. Ответ уходит на площадку только после вашей кнопки «Отправить»."}</p></div>
+    <div class="seg wide" data-seg="tab"><button data-v="wait" class="${tab==="wait"?"active":""}">${isQ?"Ждут ответа":"Ждут проверки"} · ${wait.length}</button><button data-v="done" class="${tab==="done"?"active":""}">${isQ?"Отвечено":"Отправлено"} · ${done.length}</button></div>
+    ${isQ?"":'<div class="note">Отзывы Ozon сюда не приходят: Ozon отдаёт их по API только на подписке Premium Plus. С Ozon приходят вопросы, они во вкладке «Вопросы».</div>'}
+    <label class="f sortbox">Сортировка<select data-sort="${page}">${Object.entries(SORT_LABEL).filter(([k])=>!(isQ&&k.startsWith("stars"))).map(([k,l])=>`<option value="${k}" ${sortKey===k?"selected":""}>${l}</option>`).join("")}</select></label>
+    <div class="filters" data-seg="cab"><button data-v="all" class="${cab==="all"?"active":""}">Все магазины</button>${CABS.filter(c=>!(kind==="review"&&c.id==="oz")).map(c=>`<button data-v="${c.id}" class="${cab===c.id?"active":""}">${c.label}</button>`).join("")}</div>`;
+  if(tab==="wait"){
+    if(!wait.length)html+=`<div class="empty">Здесь пусто. Новое появится после следующего прогона.</div>`;
+    if(ready.length)html+=`<div class="sect"><h2>Черновик готов</h2><span class="small muted">проверьте и отправьте</span></div>`+ready.map(r=>card(r)).join("");
+    if(fresh.length)html+=`<div class="sect"><h2>Черновик ещё не написан</h2><span class="small muted">сервис напишет при ближайшем прогоне; можно ответить самому или нажать «Переписать ИИ»</span></div>`+fresh.map(r=>card(r)).join("");
+    if(need.length)html+=`<div class="sect"><h2>Нужен ваш ответ</h2><span class="small muted">${isQ?"нет данных в карточке или сложный случай":"правило «вручную» или сложный случай"}</span></div>`+need.map(r=>card(r)).join("");
+  }else{
+    html+=done.length?done.map(r=>card(r)).join(""):`<div class="empty">Пока ничего не отправлено.</div>`;
+  }
+  box.innerHTML=html+"</div>";
+  box.querySelectorAll("[data-seg] button").forEach(b=>b.addEventListener("click",()=>{S[b.parentNode.dataset.seg][page]=b.dataset.v;save();renderList(page);}));
+  box.querySelectorAll("[data-sort]").forEach(s=>s.addEventListener("change",()=>{S.sort=S.sort||{};S.sort[page]=s.value;save();renderList(page);}));
+  box.querySelectorAll("[data-act]").forEach(b=>b.addEventListener("click",()=>act(b.dataset.act,b.dataset.id,b)));
+  box.querySelectorAll("textarea[data-id]").forEach(t=>t.addEventListener("input",()=>{DRAFTS[t.dataset.id]=t.value;paintChecks(t.dataset.id,t.value);}));
+}
+function card(r){
+  const cab=cabOf(r.kab),isQ=r.kind==="question",waitSt=WAIT_ST.includes(r.status);
+  const draft=DRAFTS[r.id]!=null?DRAFTS[r.id]:(r.reply||"");
+  const head=`<div class="head"><span class="chip ${cab.platform}">${esc(cab.label)}</span>${isQ?'<b>Вопрос</b>':starsHtml(r.stars)}<span class="who">${esc(r.user||"")}</span><span class="small muted">${fmtDate(r.created)}</span>${r.photo?'<span class="chip manual">с фото</span>':""}${r.top3?'<span class="chip bad" title="Отзыв виден в первой тройке ленты карточки">топ-3 ленты</span>':""}${r.no_facts&&waitSt?'<span class="chip bad">нет данных в карточке</span>':""}${waitSt&&(r.rewrite||L.requests.some(x=>x.id===r.id))?'<span class="chip manual">ИИ переписывает</span>':""}</div>
+    <div class="prod"><b>${esc(r.art||"")}</b>${r.art?" · ":""}${esc(r.product||"")}${r.category?" · "+esc(r.category):""}</div>
+    ${r.text?`<div class="txt">${esc(r.text)}</div>`:'<div class="txt muted">Без текста</div>'}
+    ${(r.pros||r.cons)?`<div class="pc">${r.pros?`<span class="plus"><b>Плюсы:</b> ${esc(r.pros)}</span>`:""}${r.cons?`<span class="minus"><b>Минусы:</b> ${esc(r.cons)}</span>`:""}</div>`:""}
+    ${isQ&&r.facts?`<details class="facts"><summary>Что известно из карточки товара</summary><div class="small">${esc(r.facts)}</div></details>`:""}`;
+  let body;
+  if(waitSt){
+    const chk=checkRules(draft);
+    body=`<div class="reply"><div class="lbl">${r.reply?"Черновик"+(r.reply_src?" · "+esc(r.reply_src):""):"Напишите ответ"}${r.reason?" · "+esc(r.reason):""}</div>
+      <textarea data-id="${esc(r.id)}" id="ta-${esc(r.id)}" placeholder="Ответ покупателю…">${esc(draft)}</textarea>
+      <div class="checks" id="chk-${esc(r.id)}">${checksHtml(chk)}</div>
+      <div class="actions"><button class="btn primary" data-act="send" data-id="${esc(r.id)}" ${chk.length?"disabled":""}>Отправить</button><button class="btn" data-act="regen" data-id="${esc(r.id)}">Переписать ИИ</button><button class="btn ghost" data-act="skip" data-id="${esc(r.id)}">Пропустить</button></div>${GH_MODE?`<div class="rq" id="rq-${esc(r.id)}" hidden><input type="text" id="rqi-${esc(r.id)}" maxlength="300" placeholder="Что поправить? Например: короче, мягче. Можно не заполнять"><button class="btn sm primary" data-act="rqsend" data-id="${esc(r.id)}">Попросить ИИ</button></div>`:""}</div>`;
+  }else{
+    const lbl=r.status==="approved"?"Одобрено. Уйдёт на площадку при следующем прогоне":(r.sent_by==="auto"?"Ответил сам":"Отправлено")+(r.sent?" · "+fmtDate(r.sent):"");
+    body=`<div class="reply"><div class="lbl">${esc(lbl)}${r.err?' · <span class="chip bad">ошибка отправки</span>':""}</div><div class="body">${esc(r.reply||"")}</div>
+      ${r.status==="approved"?`<div class="actions"><button class="btn sm ghost" data-act="back" data-id="${esc(r.id)}">Вернуть на проверку</button></div>`:""}</div>`;
+  }
+  return `<article class="rev s-${waitSt?(r.no_facts||r.status==="manual"?"manual":"review"):"sent"}">${head}${body}</article>`;
+}
+function checksHtml(chk){return chk.length?chk.map(c=>`<span class="chip bad">✕ ${esc(c)}</span>`).join(""):'<span class="chip auto">✓ правила площадки соблюдены</span>';}
+function paintChecks(id,text){const chk=checkRules(text);const el=$("chk-"+id);if(el)el.innerHTML=checksHtml(chk);const b=document.querySelector(`[data-act="send"][data-id="${CSS.escape(id)}"]`);if(b)b.disabled=!!chk.length;}
+const by=()=>(GHUSER&&GHUSER.name)?String(GHUSER.name).slice(0,30):(isOwner()?"владелец":"менеджер");
+
+async function decide(r,action,text){
+  if(LIVE){
+    await writeDoc("decisions/"+r.id,{action,text:text||"",by:by(),ts:new Date().toISOString(),stars:r.stars||0,product:r.product||"",kind:r.kind});
+    const i=L.decisions.findIndex(d=>d.id===r.id),dd={id:r.id,action,text:text||"",by:by()};if(i>=0)L.decisions[i]=dd;else L.decisions.push(dd);
+  }else{
+    const x=S.demo.reviews.find(o=>o.id===r.id);if(!x)return;
+    if(action==="send"){
+      if((x.reply||"").trim()!==text.trim()||x.no_facts)S.demo.edits.unshift({id:newId("e"),review_id:x.id,kind:x.kind,stars:x.stars,product:x.product,art:x.art,review_text:x.text,was:x.reply||"",final:text,ts:new Date().toISOString(),learned:0});
+      x.status="sent";x.reply=text;x.no_facts=0;x.sent=new Date().toISOString();x.sent_by="manual";
+    }else if(action==="skip"){x.status="skipped";}else{x.status="manual";}
+    save();
+  }
+}
+async function act(a,id,btn){
+  const r=D.reviews().find(x=>x.id===id);if(!r)return;
+  const ta=$("ta-"+id),text=ta?ta.value.trim():(r.reply||"");
+  try{
+    if(a==="send"){
+      const chk=checkRules(text);if(chk.length){toast("Исправьте: "+chk.join(", "));return;}
+      btn.disabled=true;await decide(r,"send",text);delete DRAFTS[id];
+      toast(LIVE?"Одобрено. Уйдёт на площадку при следующем прогоне.":"Отправлено (демо).");
+    }else if(a==="skip"){btn.disabled=true;await decide(r,"skip","");delete DRAFTS[id];toast("Пропущено, ответа не будет.");}
+    else if(a==="back"){btn.disabled=true;await decide(r,"manual","");toast("Возвращено на проверку.");}
+    else if(a==="rqsend"){
+      const inp=$("rqi-"+id),hint=inp?inp.value.trim():"";btn.disabled=true;
+      await writeDoc("requests/"+id,{hint,by:by(),ts:new Date().toISOString()});
+      const i=L.requests.findIndex(x=>x.id===id),q={id,hint};if(i>=0)L.requests[i]=q;else L.requests.push(q);
+      toast("Заявка принята. ИИ перепишет ответ при ближайшем прогоне, обычно в течение получаса.");
+    }
+    else if(a==="regen"){await regen(r,ta,btn);return;}
+  }catch(e){toast("Не получилось сохранить: "+errText(e)+". Попробуйте ещё раз.");if(btn)btn.disabled=false;return;}
+  needRender=false;render();
+}
+
+/* ================= ИИ на странице ================= */
+function aiPrompt(r){
+  const c=D.config(),isQ=r.kind==="question",scope=isQ?"questions":"reviews";
+  const sk=D.skills().filter(s=>s.enabled!==false&&(s.text||"").trim());
+  const style=sk.filter(s=>(s.kind==="style"||s.kind==="rule")&&(s.scope==="all"||s.scope===scope)).map(s=>"— "+s.text).join("\n");
+  const prod=sk.filter(s=>s.kind==="product"&&normArt(s.art)&&normArt(s.art)===normArt(r.art)).map(s=>s.text).join("\n");
+  const ex=D.edits().slice(0,4).map(e=>`Отзыв/вопрос: ${e.review_text}\nОтвет менеджера: ${e.final}`).join("\n\n");
+  return `Ты пишешь ответ от имени магазина «${c.brand}» на ${r.kab==="oz"?"Ozon":"Wildberries"}. Обращение на «${c.address}». Подпись в конце с новой строки: ${c.signer}.
+Никогда не обещай: ${c.never_promise}.
+Правила площадки: без ссылок, телефонов, почты, мессенджеров, слов КАПСОМ, смайлов, двойных восклицательных и вопросительных знаков; не проси связаться вне площадки; не проси изменить оценку; не жалуйся на доставку и склад площадки; не обвиняй покупателя; без штампов вроде «ждём вас снова».
+${style?"Правила и стиль магазина:\n"+style+"\n":""}${ex?"Примеры ответов менеджера, держись этого стиля:\n"+ex+"\n":""}
+${isQ?`Это ВОПРОС покупателя о товаре. Отвечай ТОЛЬКО по фактам ниже. Сначала прямой ответ, 1–3 предложения. Если фактов для ответа нет, ничего не выдумывай и верни ровно два слова: НЕТ ДАННЫХ.
+Факты из карточки: ${r.facts||"нет"}
+Знания магазина об этом товаре: ${prod||"нет"}
+Товар: ${r.product} (артикул ${r.art}). Вопрос${r.user?" от "+r.user:""}: «${r.text}»`
+:`Это ОТЗЫВ ${r.stars}★ на «${r.product}» от покупателя ${r.user||"без имени"}. Текст: «${r.text||"(без текста)"}»${r.pros?"\nДостоинства: "+r.pros:""}${r.cons?"\nНедостатки: "+r.cons:""}${r.photo?"\nК отзыву приложено фото.":""}
+${prod?"Знания магазина об этом товаре: "+prod+"\n":""}Напиши 2–4 предложения по содержанию отзыва. При проблеме предлагай только штатный путь: возврат или обращение через личный кабинет площадки.`}
+Верни только текст ответа.`;
+}
+async function regen(r,ta,btn){
+  if(!sample&&GH_MODE&&dbase){const row=$("rq-"+r.id);if(row){row.hidden=!row.hidden;if(!row.hidden){const i=row.querySelector("input");if(i)i.focus();}}return;}   // вне Claude ИИ пишет воркер: оставляем ему заявку
+  if(!sample){toast("ИИ на этой странице недоступен. Напишите ответ вручную или дождитесь нового черновика.");return;}
+  const old=btn.textContent;btn.disabled=true;btn.innerHTML='<span class="spin"></span> Пишу…';
+  try{
+    const res=await sample(aiPrompt(r),{cache:false,onText:({text})=>{if(!/^НЕТ ДАННЫХ/i.test(text.trim()))ta.value=text;}});
+    const t=(res.text||"").trim();
+    if(/^НЕТ ДАННЫХ/i.test(t)){toast("В карточке и знаниях нет ответа. Напишите сами — ответ сохранится как знание о товаре.");}
+    else{ta.value=t;DRAFTS[r.id]=t;paintChecks(r.id,t);}
+  }catch(e){toast(e&&e.code==="not_granted"?"Доступ к ИИ не выдан на этой странице.":e&&e.code==="rate_limited"?"ИИ перегружен, попробуйте чуть позже.":"ИИ не ответил, попробуйте ещё раз.");}
+  btn.disabled=false;btn.textContent=old;
+}
+
+/* ================= ПРАВИЛА ================= */
+async function saveConfig(patch){
+  if(!isOwner()){toast("Правила меняет только владелец. Переключить роль можно под шестерёнкой.");return false;}
+  const p=Object.assign({},patch,{updated:new Date().toISOString(),updated_by:by()});
+  if(!dbase){S.demo.config=Object.assign(D.config(),p);save();return true;}
+  if(!cfgReady){toast("Правила ещё загружаются, попробуйте через пару секунд.");return false;}
+  if(cfgBusy){toast("Идёт сохранение, подождите.");return false;}
+  cfgBusy=true;const prev=L.config;L.config=Object.assign(D.config(),p);LIVE=true;
+  try{if(cfgExists){await writeDoc("config/main",p,true);}else{await writeDoc("config/main",L.config);cfgExists=true;}}
+  catch(e){L.config=prev;cfgBusy=false;toast("Не удалось сохранить правила: "+errText(e));return false;}
+  cfgBusy=false;return true;
+}
+function renderRules(){
+  const c=D.config(),ro=!isOwner();
+  $("rulesNote").innerHTML=ro?'Вы вошли как менеджер: правила только для просмотра. <button class="btn sm" id="btnBeOwner">Я владелец</button>':((LIVE||dbase)?"Изменения сохраняются сразу и применяются при следующем прогоне воркера, в течение получаса.":"Демо-режим: правила хранятся в этом браузере.");
+  const bo=$("btnBeOwner");if(bo)bo.addEventListener("click",()=>{S.role="owner";save();toast("Вы вошли как владелец");renderRules();});
+  $("cAutopilot").classList.toggle("on",!!c.autopilot);$("cTg").classList.toggle("on",c.tg_mode==="summary");$("cPhoto").classList.toggle("on",!!c.photo_to_review);
+  $("rulesList").innerHTML=[5,4,3,2,1,0].map(k=>{const r=c.rules[k]||DEFAULT_CONFIG.rules[k];return `<div class="rule">
+    <div class="rh"><div>${k?starsHtml(k):"<b>Без текста</b>"} <span class="small muted">${STAR_HINT[k]}</span></div></div>
+    <div class="seg wide" data-k="${k}">${Object.entries(MODES).map(([m,l])=>`<button data-v="${m}" class="${r.mode===m?"active":""}">${l}</button>`).join("")}</div>
+    <div class="opts"><label class="f">Тип ответа<select data-k="${k}" data-f="type">${Object.entries(TYPES).map(([v,l])=>`<option value="${v}" ${r.type===v?"selected":""}>${l}</option>`).join("")}</select></label>
+    <label class="f">Тон<select data-k="${k}" data-f="tone">${Object.entries(TONES).map(([v,l])=>`<option value="${v}" ${r.tone===v?"selected":""}>${l}</option>`).join("")}</select></label></div></div>`;}).join("");
+  const setRule=async(k,f,v)=>{const rules=clone(D.config().rules);rules[k]=Object.assign({},rules[k],{[f]:v});if(await saveConfig({rules})){toast("Сохранено");}renderRules();};
+  $("rulesList").querySelectorAll(".seg button").forEach(b=>b.addEventListener("click",()=>setRule(b.parentNode.dataset.k,"mode",b.dataset.v)));
+  $("rulesList").querySelectorAll("select").forEach(s=>s.addEventListener("change",()=>setRule(s.dataset.k,s.dataset.f,s.value)));
+  if(!voiceDirty){$("cBrand").value=c.brand||"";$("cSigner").value=c.signer||"";$("cAddress").value=c.address||"вы";$("cStop").value=(c.stop_words||[]).join(", ");$("cNever").value=c.never_promise||"";}
+  document.querySelectorAll("#page-rules select,#page-rules input,#page-rules textarea").forEach(el=>el.disabled=ro);
+  document.querySelectorAll("#page-rules .seg button,#page-rules .sw,#btnSaveVoice").forEach(el=>{el.disabled=false;el.style.opacity=ro?".55":"";});
+}
+$("cAutopilot").addEventListener("click",async()=>{const v=!D.config().autopilot;if(v&&!ask("ap","Автопилот: ответы на 4–5★ с режимом «отвечает сам» будут уходить без вашей проверки."))return;if(await saveConfig({autopilot:v}))toast(v?"Автопилот включён":"Автопилот выключен");renderRules();});
+$("cTg").addEventListener("click",async()=>{const v=D.config().tg_mode==="summary"?"off":"summary";if(await saveConfig({tg_mode:v}))toast(v==="off"?"Сводка в Telegram выключена":"Сводка в Telegram включена");renderRules();});
+$("cPhoto").addEventListener("click",async()=>{if(await saveConfig({photo_to_review:!D.config().photo_to_review}))toast("Сохранено");renderRules();});
+$("btnSaveVoice").addEventListener("click",async()=>{
+  const ok=await saveConfig({brand:$("cBrand").value.trim(),signer:$("cSigner").value.trim(),address:$("cAddress").value,never_promise:$("cNever").value.trim(),stop_words:$("cStop").value.split(",").map(s=>s.trim()).filter(Boolean)});
+  if(ok)voiceDirty=false;
+  $("voiceSaved").textContent=ok?"Сохранено "+new Date().toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}):"";
+});
+
+["cBrand","cSigner","cStop","cNever"].forEach(id=>$(id).addEventListener("input",()=>{voiceDirty=true;}));
+$("cAddress").addEventListener("change",()=>{voiceDirty=true;});
+
+/* ================= ЗНАНИЯ ================= */
+let editingSkill=null;
+const KIND_LABEL={style:"Стиль",rule:"Правило",product:"Товар"},SCOPE_LABEL={all:"везде",reviews:"отзывы",questions:"вопросы"},SRC_LABEL={manual:"добавлено вручную",learning:"выучено из правок",edit:"из правки",history:"из истории ответов"};
+async function touchSkills(){try{if(LIVE||dbase)await writeDoc("config/skills_rev",{rev:new Date().toISOString()});}catch(e){}}
+async function saveSkill(s){
+  if(LIVE||dbase){await writeDoc("skills/"+s.id,s);LIVE=true;touchSkills();const i=L.skills.findIndex(x=>x.id===s.id);if(i>=0)L.skills[i]=s;else L.skills.push(s);}
+  else{const i=S.demo.skills.findIndex(x=>x.id===s.id);if(i>=0)S.demo.skills[i]=s;else S.demo.skills.push(s);save();}
+}
+async function deleteSkill(id){
+  if(LIVE||dbase){await dbase.doc("skills/"+id).delete();touchSkills();L.skills=L.skills.filter(x=>x.id!==id);}
+  else{S.demo.skills=S.demo.skills.filter(x=>x.id!==id);save();}
+}
+function skillCard(s){
+  return `<details class="skill-item ${s.enabled===false?"off":""}"><summary><span class="chip ${s.kind==="product"?"sent":"manual"}">${KIND_LABEL[s.kind]||"Правило"}</span> <b>${esc(s.kind==="product"&&s.art?s.art:s.title||"Без названия")}</b>${s.kind==="product"&&s.title?' <span class="small muted">'+esc(s.title)+"</span>":""}${s.enabled===false?' <span class="chip bad">выключено</span>':""}</summary>
+    <div class="body">${esc(s.text)}</div>
+    <div class="small muted">Применяется: ${SCOPE_LABEL[s.scope]||"везде"} · ${SRC_LABEL[s.source]||"добавлено вручную"}</div>
+    <div class="actions"><button class="btn sm" data-sk="edit" data-id="${esc(s.id)}">Изменить</button><button class="btn sm" data-sk="toggle" data-id="${esc(s.id)}">${s.enabled===false?"Включить":"Выключить"}</button><button class="btn sm danger" data-sk="del" data-id="${esc(s.id)}">Удалить</button></div></details>`;
+}
+function fillSkillForm(s){
+  editingSkill=s&&s.id&&D.skills().some(x=>x.id===s.id)?s.id:null;
+  $("sfTitle").textContent=editingSkill?"Изменить знание":"Добавить знание";$("btnSkillCancel").hidden=!s;
+  $("sfKind").value=(s&&s.kind)||"rule";$("sfScope").value=(s&&s.scope)||"all";$("sfArt").value=(s&&s.art)||"";$("sfName").value=(s&&s.title)||"";$("sfText").value=(s&&s.text)||"";
+  $("sfArtWrap").hidden=$("sfKind").value!=="product";
+}
+$("sfKind").addEventListener("change",()=>{$("sfArtWrap").hidden=$("sfKind").value!=="product";if($("sfKind").value==="product"&&$("sfScope").value==="all")$("sfScope").value="questions";});
+$("btnSkillCancel").addEventListener("click",()=>{fillSkillForm(null);});
+$("btnSkillSave").addEventListener("click",async()=>{
+  const kind=$("sfKind").value,text=$("sfText").value.trim(),art=$("sfArt").value.trim();
+  if(text.length<5){toast("Напишите текст знания.");return;}
+  if(kind==="product"&&!art){toast("Укажите артикул продавца, к которому относится знание.");return;}
+  const old=editingSkill?D.skills().find(x=>x.id===editingSkill):null,nowIso=new Date().toISOString();
+  const s={id:editingSkill||newId("s"),kind,title:$("sfName").value.trim(),text,scope:$("sfScope").value,art:kind==="product"?art:"",enabled:old?old.enabled!==false:true,source:old?old.source||"manual":"manual",created:(old&&old.created)||nowIso,updated:nowIso};
+  try{await saveSkill(s);toast("Знание сохранено. Воркер учтёт его со следующего прогона.");fillSkillForm(null);renderKnow();}catch(e){toast("Не удалось сохранить: "+errText(e));}
+});
+$("skillSearch").addEventListener("input",()=>renderSkillLists());
+$("btnLearn").addEventListener("click",async()=>{
+  const v=!D.config().learning;
+  if(!isOwner()){toast("Обучение останавливает и возобновляет владелец.");return;}
+  if(await saveConfig({learning:v}))toast(v?"Обучение возобновлено":"Обучение остановлено. Уже накопленные знания продолжают работать.");
+  renderKnow();
+});
+function renderSkillLists(){
+  const q=normArt($("skillSearch").value),all=D.skills();
+  const st=all.filter(s=>s.kind!=="product"),pr=all.filter(s=>s.kind==="product").filter(s=>!q||normArt(s.art+" "+s.title+" "+s.text).includes(q)).sort((a,b)=>normArt(a.art).localeCompare(normArt(b.art)));
+  $("cntStyle").textContent=st.length?st.length+" шт.":"";$("cntProd").textContent=pr.length?pr.length+" товаров":"";
+  $("skillsStyle").innerHTML=st.length?st.map(skillCard).join(""):'<div class="empty">Пока нет правил. Добавьте первое выше.</div>';
+  const shown=pr.slice(0,60);
+  $("skillsProd").innerHTML=shown.length?shown.map(skillCard).join("")+(pr.length>shown.length?`<div class="note">Показаны первые ${shown.length} из ${pr.length}. Уточните поиск.</div>`:""):'<div class="empty">'+(q?"Ничего не найдено.":"Знаний о товарах пока нет. Они появятся из ваших ответов на вопросы.")+"</div>";
+  document.querySelectorAll("#page-know [data-sk]").forEach(b=>b.addEventListener("click",async()=>{
+    const s=D.skills().find(x=>x.id===b.dataset.id);if(!s)return;
+    try{
+      if(b.dataset.sk==="edit"){fillSkillForm(s);$("skillForm").scrollIntoView({behavior:"smooth",block:"start"});return;}
+      if(b.dataset.sk==="toggle"){await saveSkill(Object.assign({},s,{enabled:s.enabled===false,updated:new Date().toISOString()}));}
+      if(b.dataset.sk==="del"){if(!ask("del:"+s.id,"Удалить это знание?"))return;await deleteSkill(s.id);}
+      renderKnow();
+    }catch(e){toast("Не получилось: "+errText(e));}
+  }));
+}
+function renderKnow(){
+  const on=!!D.config().learning;
+  $("learnTitle").textContent=on?"Обучение идёт":"Обучение остановлено";
+  $("learnNote").textContent=on?"Каждая ваша правка и каждый ответ на вопрос без данных превращаются в знание при следующем прогоне.":"Новые знания не создаются. Уже накопленные продолжают использоваться.";
+  $("btnLearn").textContent=on?"Стоп обучение":"Возобновить";$("btnLearn").className="btn"+(on?"":" primary");
+  if(!typing())fillSkillForm(editingSkill?D.skills().find(x=>x.id===editingSkill):null);
+  renderSkillLists();
+  const ed=D.edits().slice().sort((a,b)=>String(b.ts).localeCompare(String(a.ts))).slice(0,20);
+  $("editsList").innerHTML=ed.length?ed.map(e=>`<div class="ex"><div class="muted">${e.kind==="question"?"Вопрос":(e.stars||"")+"★"} · <b>${esc(e.art||e.product||"")}</b> · ${esc((e.review_text||"").slice(0,140))}</div>${e.was?`<div class="was">${esc(e.was.slice(0,200))}</div>`:""}<div>${esc(e.final)}</div><div class="row"><button class="btn sm" data-ed="${esc(e.id)}">Сделать правилом</button>${e.learned?'<span class="chip auto">уже выучено</span>':""}</div></div>`).join(""):'<div class="empty">Правок пока нет. Исправьте любой черновик перед отправкой — он появится здесь.</div>';
+  $("editsList").querySelectorAll("[data-ed]").forEach(b=>b.addEventListener("click",()=>{
+    const e=D.edits().find(x=>x.id===b.dataset.ed);if(!e)return;
+    fillSkillForm(e.kind==="question"?{kind:"product",scope:"questions",art:e.art||"",title:(e.review_text||"").slice(0,60),text:e.final.replace(/\n[^\n]*$/,"").trim()}:{kind:"rule",scope:"reviews",art:"",title:"",text:""});
+    $("skillForm").scrollIntoView({behavior:"smooth",block:"start"});toast(e.kind==="question"?"Проверьте формулировку факта и сохраните.":"Опишите правило своими словами и сохраните.");
+  }));
+}
+
+/* ================= АНАЛИТИКА ================= */
+const REASONS_RX={"Брак, поломка":/брак|слома|не работа|перестал|заглох|трещин|шов|царапин|потек|течёт|течет/i,"Не как в описании":/не соответств|фото|описани|цвет|тоньше|отличается/i,"Не помогает, нет эффекта":/не помога|не отпугива|бесполезн|не действует/i,"Запах":/запах|пахн|вонь|воня/i,"Размер":/размер|маленьк|велик/i,"Качество материала":/тонк|хлипк|материал|качеств|дешёв|дешев/i,"Комплектация":/не хватает|комплект|не доложили|отсутству|пустая/i};
+const REASON_NAMES=["Брак, поломка","Не как в описании","Не помогает, нет эффекта","Запах","Размер","Качество материала","Комплектация","Упаковка и вид при получении","Батарея, зарядка"];   // те же названия, что в воркере
+const TSORT={};   // сортировка таблиц аналитики: id таблицы → {k, dir}
+function sortTable(id,cols,rows,firstCell,rowCls){
+  const st=TSORT[id]||(TSORT[id]={k:"neg",dir:-1});
+  const data=rows.slice().sort((a,b)=>{const x=a[st.k],y=b[st.k];if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return (typeof x==="string"?x.localeCompare(y):x-y)*st.dir;});
+  const fmt=v=>v==null?"—":String(v).replace(".",",");
+  $(id).innerHTML="<tr>"+cols.map(c=>`<th class="${c.num?"n ":""}sortable" data-k="${c.k}" title="Нажмите, чтобы отсортировать"><span class="lg">${c.t}</span><span class="sm">${c.ts||c.t}</span>${st.k===c.k?(st.dir<0?" ↓":" ↑"):""}</th>`).join("")+"</tr>"
+    +(data.length?data.map(r=>`<tr class="${rowCls?rowCls(r):""}">`+cols.map((c,i)=>i===0?`<td>${firstCell(r)}</td>`:`<td class="n ${c.cls?c.cls(r):""}">${fmt(r[c.k])}${c.suf&&r[c.k]!=null?c.suf:""}</td>`).join("")+"</tr>").join(""):`<tr><td colspan="${cols.length}" class="muted">Нет данных</td></tr>`);
+  $(id).querySelectorAll("th.sortable").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.k;if(st.k===k)st.dir=-st.dir;else{st.k=k;st.dir=k==="name"?1:-1;}sortTable(id,cols,rows,firstCell,rowCls);}));
+}
+function localAgg(scope,days){   // запасной расчёт по записям на сайте (демо или пока воркер не прислал аналитику)
+  const cut=new Date(Date.now()-days*864e5).toISOString(),inScope=r=>scope==="all"||r.kab===scope;
+  const rev=D.reviews().filter(r=>r.kind==="review"&&r.status!=="gone"&&inScope(r)&&String(r.created)>=cut),neg=rev.filter(r=>r.stars>=1&&r.stars<=3);
+  const avg=l=>l.length?Math.round(l.reduce((a,r)=>a+(r.stars||0),0)/l.length*100)/100:null,isWait=r=>WAIT_ST.includes(r.status);
+  const n=Math.min(days,30),bk=[];for(let i=n-1;i>=0;i--){const d=new Date(Date.now()-i*864e5).toISOString().slice(0,10),l=rev.filter(r=>String(r.created).slice(0,10)===d);bk.push({d,t:l.length,n:l.filter(r=>r.stars<=3).length});}
+  const group=key=>{const g={};rev.forEach(r=>{const k=key(r)||"(не указано)";(g[k]=g[k]||[]).push(r);});return Object.entries(g).map(([k,l])=>{const ng=l.filter(r=>r.stars<=3).length;return {name:k,title:String(l[0].product||"").slice(0,70),n:l.length,avg:avg(l),neg:ng,neg_share:Math.round(ng*1000/l.length)/10,unanswered:l.filter(isWait).length};});};
+  const st={};[5,4,3,2,1].forEach(s=>st[s]=rev.filter(r=>r.stars===s).length);
+  return {local:true,period_days:days,total:rev.length,avg:avg(rev),neg:neg.length,neg_share:rev.length?Math.round(neg.length*1000/rev.length)/10:0,unanswered:rev.filter(isWait).length,prev_avg:null,stars:st,days:bk,
+    reasons:Object.entries(REASONS_RX).map(([k,re])=>[k,neg.filter(r=>re.test((r.text||"")+" "+(r.cons||""))).length]).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]),cats:group(r=>r.category),prods:group(r=>r.art||r.product)};
+}
+function statDoc(scope,days){const r=(L.analytics||[]).find(a=>a.id===scope+"_"+days);return ((LIVE||dbase)&&r)?r:localAgg(scope,days);}
+function renderStats(){
+  const scope=(S.statScope&&S.statScope!=="oz")?S.statScope:"all",days=+S.statDays||90;
+  document.querySelectorAll("#statScope button").forEach(b=>b.classList.toggle("active",b.dataset.v===scope));
+  document.querySelectorAll("#statDays button").forEach(b=>b.classList.toggle("active",+b.dataset.v===days));
+  const a=statDoc(scope,days),fmt=v=>v==null?"—":String(v).replace(".",",");
+  $("statNote").textContent=a.local?((LIVE||dbase)?"Пока считаю только по записям в очереди. Полная аналитика появится после ближайшего прогона воркера.":"Демо-данные."):"Отзывы Wildberries, включая уже отвеченные. Обновлено "+fmtDate(a.updated)+". Отзывы Ozon недоступны по API, поэтому здесь их нет.";
+  $("aRev").textContent=a.total;$("aAvg").textContent=fmt(a.avg);$("aNeg").textContent=a.neg;$("aNegSub").textContent=a.total?fmt(a.neg_share)+" % от всех":"—";
+  const perDay=a.total/days;$("aRevSub").textContent=a.total?"≈ "+fmt(perDay>=10?Math.round(perDay):Math.round(perDay*10)/10)+" в день":"—";
+  $("aAvgSub").textContent=a.prev_avg!=null?"было "+fmt(a.prev_avg):"—";$("aUn").textContent=a.unanswered||0;
+  const diff=(a.avg!=null&&a.prev_avg!=null)?Math.round((a.avg-a.prev_avg)*100)/100:null;
+  $("aTrend").textContent=diff==null?"—":(diff>=0?"+":"")+fmt(diff);$("aTrend").className="n "+(diff==null?"":diff<0?"warn":"good");
+  $("aTrendSub").textContent="к прошлым "+days+" дням";
+  const bk=a.days||[],max=Math.max(1,...bk.map(d=>d.t));
+  $("barsTitle").textContent=bk.length&&bk[0].week?"Отзывы по неделям":"Отзывы по дням";
+  $("bars").innerHTML=bk.map(d=>`<div style="height:${Math.max(2,d.t/max*100)}%" class="${d.n?"neg":""}" title="${d.week?"неделя с ":""}${d.d}: ${d.t} отзывов, негатив ${d.n}"></div>`).join("");
+  $("ax0").textContent=bk.length?new Date(bk[0].d).toLocaleDateString("ru-RU",{day:"numeric",month:"short"}):"";
+  const cnt=[5,4,3,2,1].map(s=>(a.stars||{})[s]||0),m=Math.max(1,...cnt);
+  $("dist").innerHTML=[5,4,3,2,1].map((s,i)=>`<span>${s}★</span><div class="b"><i style="width:${cnt[i]/m*100}%"></i></div><span>${cnt[i]}</span>`).join("");
+  const rs=(a.reasons||[]).slice(),seen=new Set(rs.map(x=>x[0]));REASON_NAMES.forEach(k=>{if(!seen.has(k))rs.push([k,0]);});   // список причин всегда полный: высота блока не меняется
+  $("reasons").innerHTML=rs.map(([k,n])=>`<div class="${n?"":"zero"}"><span title="${esc(k)}">${esc(k)}</span><b>${n}</b></div>`).join("");
+  const cols=f=>[{k:"name",t:f},{k:"n",t:"Отзывов",ts:"Отз.",num:1},{k:"avg",t:"Ср.",num:1,cls:r=>r.avg!=null&&r.avg<4?"bad":"good"},{k:"neg",t:"1–3★",num:1,cls:r=>r.neg?"bad":""},{k:"neg_share",t:"Доля",num:1,suf:"%"},{k:"unanswered",t:"Без ответа",ts:"Без отв.",num:1}];
+  sortTable("tblCat",cols("Категория"),a.cats||[],r=>esc(r.name));
+  sortTable("tblProd",cols("Товар"),a.prods||[],r=>`<b>${esc(r.name)}</b><br><span class="small muted">${esc(r.title||"")}</span>`);
+  // сравнение магазинов видно всегда (выбранный подсвечен): при переключении магазина вёрстка не прыгает
+  sortTable("tblCab",cols("Магазин"),CABS.filter(c=>c.id!=="oz").map(c=>Object.assign({},statDoc(c.id,days),{name:cabFull(c),n:statDoc(c.id,days).total,cab:c.id})),r=>esc(r.name),r=>r.cab===scope?"cur":"");
+}
+document.querySelectorAll("#statScope button").forEach(b=>b.addEventListener("click",()=>{S.statScope=b.dataset.v;save();renderStats();}));
+document.querySelectorAll("#statDays button").forEach(b=>b.addEventListener("click",()=>{S.statDays=+b.dataset.v;save();renderStats();}));
+
+/* ================= НАСТРОЙКИ ================= */
+function renderSettings(){
+  document.querySelectorAll("#roleSeg button").forEach(b=>b.classList.toggle("active",b.dataset.v===S.role));
+  const st=D.status(),c=D.config(),row=(k,v)=>`<div><span>${k}</span><b>${esc(v)}</b></div>`,go=(k,v,pg)=>`<div><span>${k}</span><button class="btn sm" data-go="${pg}">${esc(v)} · изменить</button></div>`;
+  $("statusBox").innerHTML=!LIVE?row("Данные","демо-примеры в этом браузере"):[row("Данные","живые, из базы сервиса"),st?row("Последний прогон",fmtDate(st.last_run)):"",st?row("Режим воркера",st.mode==="live"?"боевой: одобренное уходит на площадки":"тренировочный: на площадки ничего не уходит"):"",go("Автопилот 4–5★",c.autopilot?"включён":"выключен","rules"),go("Сводка в Telegram",c.tg_mode==="summary"?"включена"+(st&&st.tg_group?", группа «"+st.tg_group+"»":""):"выключена","rules"),go("Обучение",c.learning?"идёт":"остановлено","know"),st?row("Ждут проверки",`отзывов ${st.waiting_reviews}, вопросов ${st.waiting_questions}`):"",st&&st.left_new?row("Ещё не написано черновиков",String(st.left_new)):"",st&&st.errors&&st.errors.length?row("Ошибки отправки",st.errors.join("; ")):""].join("");
+  $("statusBox").querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.go)));
+  $("demoCard").hidden=LIVE||(GH_MODE&&!!dbase);
+  $("accessCard").hidden=!(GH_MODE&&GHUSER);if(GHUSER)$("accessText").textContent="Вы вошли как «"+GHUSER.name+"». Ключ доступа хранится только в этом браузере.";
+}
+$("btnLogout").addEventListener("click",()=>{if(!ask("logout","Выйти? Чтобы войти снова, понадобится ключ доступа."))return;try{localStorage.removeItem(GHKEY);}catch(e){}location.reload();});
+document.querySelectorAll("#roleSeg button").forEach(b=>b.addEventListener("click",()=>{S.role=b.dataset.v;save();renderSettings();}));
+$("btnReset").addEventListener("click",()=>{if(!ask("reset","Вернуть демо-примеры к начальному виду?"))return;S.demo=demoSeed();save();toast("Демо сброшено");render();});
+$("btnSettings").addEventListener("click",()=>showPage(S.page==="settings"?"reviews":"settings"));
+$("btnBack").addEventListener("click",()=>showPage("reviews"));
+document.querySelectorAll("#nav button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+function applyTheme(){let t=null;try{t=localStorage.getItem("otklik.theme");}catch(e){}if(t)document.documentElement.setAttribute("data-theme",t);else document.documentElement.removeAttribute("data-theme");}
+$("btnTheme").addEventListener("click",()=>{let cur=null;try{cur=localStorage.getItem("otklik.theme");}catch(e){}const dark=cur?cur==="dark":matchMedia("(prefers-color-scheme: dark)").matches;try{localStorage.setItem("otklik.theme",dark?"light":"dark");}catch(e){}applyTheme();});
+
+/* ================= ЗАПУСК ================= */
+applyTheme();showPage(S.page);connect();
+</script>
+</body>
+</html>
