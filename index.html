@@ -378,7 +378,7 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
       <label class="f">Модель<select id="orModel"></select></label>
       <div class="row"><button class="btn primary" id="btnOrSave">Сохранить</button><span class="small muted" id="orSaved"></span></div></div>
     <div class="card stack" id="appCard" hidden><h2>Приложение на телефон</h2><p class="small muted">Сайт можно поставить как приложение: значок на главном экране, открывается на весь экран. На Android откройте сайт в Chrome → меню ⋮ → «Установить приложение» (или «Добавить на главный экран»). На компьютере — значок установки в адресной строке Chrome.</p><div class="row"><button class="btn primary" id="btnInstall" hidden>Установить приложение</button></div></div>
-    <div class="card stack" id="accessCard" hidden><h2>Доступ</h2><p class="small" id="accessText"></p><label class="f" id="mkeyWrap" hidden>Ключ для сотрудников (ключ менеджера, не ваш)<input type="password" id="mKey" autocomplete="off" placeholder="github_pat_…"></label><div class="row"><button class="btn primary" id="btnInvite">Скопировать ссылку для сотрудника</button><button class="btn" id="btnLogout">Выйти на этом устройстве</button></div><input type="text" id="inviteBox" readonly hidden><p class="small muted" id="inviteNote">По этой ссылке сотрудник входит, вписав только своё имя. Ссылка работает как ключ: отправляйте её только своим людям и только личным сообщением. Если сотрудник ушёл, удалите ключ на GitHub и сделайте новый.</p></div>
+    <div class="card stack" id="accessCard" hidden><h2>Доступ</h2><p class="small" id="accessText"></p><p class="small muted" id="mkeyHelp">Как пустить сотрудника: 1) на GitHub сделайте отдельный ключ только для хранилища otklik-data (без otklik-owner) — с ним нельзя менять правила; 2) вставьте его сюда; 3) нажмите кнопку — скопируется готовая ссылка на сайт, в которую этот ключ уже вшит. Отправьте её сотруднику: он откроет ссылку, впишет имя и войдёт, ничего не вставляя.</p><label class="f" id="mkeyWrap" hidden>Ключ для сотрудников (не ваш ключ владельца)<input type="password" id="mKey" autocomplete="off" placeholder="github_pat_…"></label><div class="row"><button class="btn primary" id="btnInvite">Скопировать ссылку для сотрудника</button><button class="btn" id="btnLogout">Выйти на этом устройстве</button></div><input type="text" id="inviteBox" readonly hidden><p class="small muted" id="inviteNote">Ссылка работает как ключ: отправляйте её только своим людям личным сообщением. Сотрудник ушёл — удалите его ключ на GitHub и сделайте новый.</p></div>
     <div class="card stack" id="demoCard"><h2>Демо-данные</h2><p class="small muted">Вернуть примеры к начальному виду. На живые данные не влияет.</p><button class="btn danger" id="btnReset">Сбросить демо</button></div>
   </div>
 </section>
@@ -804,9 +804,18 @@ async function orRewrite(r,ta,btn){          // мгновенная перег�
   const o=orCfg(),old=btn.textContent;btn.disabled=true;btn.innerHTML='<span class="spin"></span> Пишу…';
   try{
     const cur=(ta&&ta.value.trim())||r.reply||"";
-    const resp=await fetch("https://openrouter.ai/api/v1/chat/completions",{method:"POST",headers:{Authorization:"Bearer "+o.key,"Content-Type":"application/json"},
-      body:JSON.stringify({model:o.model||OR_MODELS[0],temperature:0.8,max_tokens:600,messages:[{role:"user",content:aiPrompt(r)+(cur?"\nПрежний вариант ответа (напиши по-другому, другими словами):\n"+cur:"")}]})});
-    if(!resp.ok){toast(resp.status===401?"Ключ OpenRouter не подошёл. Проверьте его под шестерёнкой.":resp.status===429?"Дневной лимит бесплатных запросов исчерпан или модель занята. Попробуйте другую модель под шестерёнкой.":"Нейросеть не ответила ("+resp.status+"). Попробуйте ещё раз.");return;}
+    // выбранная модель первой, затем остальные: бесплатные модели бывают заняты, тогда сразу пробуем следующую
+    const order=[o.model||OR_MODELS[0]].concat(OR_MODELS.filter(m=>m!==(o.model||OR_MODELS[0])));let resp=null,why="";
+    for(const model of order){
+      resp=await fetch("https://openrouter.ai/api/v1/chat/completions",{method:"POST",headers:{Authorization:"Bearer "+o.key,"Content-Type":"application/json"},
+        body:JSON.stringify({model,temperature:0.8,max_tokens:1500,messages:[{role:"user",content:aiPrompt(r)+(cur?"\nПрежний вариант ответа (напиши по-другому, другими словами):\n"+cur:"")}]})});
+      if(resp.ok)break;
+      try{why=String(((await resp.json()).error||{}).message||"");}catch(e){why="";}
+      if(resp.status===401||/data policy|privacy/i.test(why))break;
+    }
+    if(!resp.ok){
+      toast(resp.status===401?"Ключ OpenRouter не подошёл. Вставьте его заново под шестерёнкой.":/data policy|privacy/i.test(why)?"OpenRouter не пускает к бесплатным моделям: на openrouter.ai откройте Settings → Privacy и включите бесплатные модели (Enable free endpoints).":resp.status===429?"Бесплатный лимит на сегодня исчерпан (50 запросов в день).":"Нейросеть не ответила ("+resp.status+(why?": "+why.slice(0,90):"")+").");
+      return;}
     const j=await resp.json(),t=String((((j.choices||[])[0]||{}).message||{}).content||"").replace(/<think>[\s\S]*?<\/think>/g,"").trim();
     if(!t){toast("Нейросеть вернула пустой ответ. Попробуйте ещё раз или другую модель.");return;}
     if(/^НЕТ ДАННЫХ/i.test(t)){toast("В карточке и знаниях нет ответа. Напишите сами: ответ сохранится как знание о товаре.");return;}
@@ -1023,8 +1032,9 @@ function renderSettings(){
   $("statusBox").querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.go)));
   $("demoCard").hidden=LIVE||(GH_MODE&&!!dbase);
   if(GH_MODE&&dbase){$("roleSeg").hidden=true;$("roleText").hidden=false;$("roleText").innerHTML=GHOWNER?"Вы вошли с <b>ключом владельца</b>.":"Вы вошли с <b>ключом менеджера</b>.";}
-  $("mkeyWrap").hidden=!isOwner();try{if(!$("mKey").value)$("mKey").value=localStorage.getItem("otklik.mkey")||"";}catch(e){}
+  $("mkeyWrap").hidden=!isOwner();$("mkeyHelp").hidden=!isOwner();try{if(!$("mKey").value)$("mKey").value=localStorage.getItem("otklik.mkey")||"";}catch(e){}
   $("orCard").hidden=!GH_MODE;
+  if(GH_MODE){const o0=orCfg();$("orKey").placeholder=o0.key?"ключ сохранён: "+o0.key.slice(0,9)+"…"+o0.key.slice(-4)+" (вставьте новый, чтобы заменить)":"sk-or-…";}
   if(GH_MODE&&!$("orModel").options.length){const o=orCfg();$("orModel").innerHTML=OR_MODELS.map(m=>`<option value="${m}" ${o.model===m?"selected":""}>${m.replace(":free","")} (бесплатная)</option>`).join("");if(o.key)$("orSaved").textContent="Ключ сохранён в этом браузере";}
   $("appCard").hidden=!GH_MODE;$("accessCard").hidden=!(GH_MODE&&GHUSER);$("btnInvite").hidden=!isOwner();$("inviteNote").hidden=!isOwner();if(GHUSER)$("accessText").textContent="Вы вошли как «"+GHUSER.name+"». Ключ доступа хранится только в этом браузере.";
 }
@@ -1032,6 +1042,7 @@ $("btnOrSave").addEventListener("click",()=>{
   const o=orCfg(),k=$("orKey").value.trim();if(k){if(!/^sk-or-/.test(k)){toast("Ключ OpenRouter начинается с sk-or-. Проверьте, что вставили именно его.");return;}o.key=k;}
   o.model=$("orModel").value;try{localStorage.setItem(ORKEY,JSON.stringify(o));}catch(e){toast("Браузер запретил сохранять ключ.");return;}
   $("orKey").value="";$("orSaved").textContent=o.key?"Сохранено. «Переписать ИИ» теперь отвечает сразу.":"Модель сохранена. Ключ ещё не вставлен.";
+  toast(o.key?"Ключ сохранён в этом браузере":"Ключ ещё не вставлен");renderSettings();
 });
 let installEvt=null;          // Chrome сообщает, что сайт можно установить как приложение
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;$("btnInstall").hidden=false;});
