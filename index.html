@@ -250,6 +250,7 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
 .login[hidden]{display:none}
 .login .card{max-width:420px;width:100%;box-shadow:var(--shadow)}
 .pilot #runText{min-width:0}
+.prod{display:flex;align-items:center;gap:10px}.prod .pimg{width:44px;height:58px;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:var(--surface2);flex:none}.prod .ptx{min-width:0}
 @media (max-width:640px){
   header.top{gap:8px;padding-block:8px}
   .logo{margin-right:auto}
@@ -705,7 +706,7 @@ function card(r){
   const cab=cabOf(r.kab),isQ=r.kind==="question",waitSt=WAIT_ST.includes(r.status);
   const draft=DRAFTS[r.id]!=null?DRAFTS[r.id]:(r.reply||"");
   const head=`<div class="head"><span class="chip ${cab.platform}">${esc(cab.label)}</span>${isQ?'<b>Вопрос</b>':starsHtml(r.stars)}<span class="who">${esc(r.user||"")}</span><span class="small muted">${fmtDate(r.created)}</span>${r.photo?'<span class="chip manual">с фото</span>':""}${r.top3?'<span class="chip bad" title="Отзыв виден в первой тройке ленты карточки">топ-3 ленты</span>':""}${r.no_facts&&waitSt?'<span class="chip bad">нет данных в карточке</span>':""}${waitSt&&(r.rewrite||L.requests.some(x=>x.id===r.id))?'<span class="chip manual">ИИ переписывает</span>':""}</div>
-    <div class="prod"><b>${esc(r.art||"")}</b>${r.art?" · ":""}${esc(r.product||"")}${r.category?" · "+esc(r.category):""}</div>
+    <div class="prod">${/^https:\/\//.test(r.img||"")?`<img class="pimg" src="${esc(r.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">`:""}<div class="ptx"><b>${esc(r.art||"")}</b>${r.art?" · ":""}${esc(r.product||"")}${r.category?" · "+esc(r.category):""}</div></div>
     ${r.text?`<div class="txt">${esc(r.text)}</div>`:'<div class="txt muted">Без текста</div>'}
     ${(r.pros||r.cons)?`<div class="pc">${r.pros?`<span class="plus"><b>Плюсы:</b> ${esc(r.pros)}</span>`:""}${r.cons?`<span class="minus"><b>Минусы:</b> ${esc(r.cons)}</span>`:""}</div>`:""}
     ${isQ?factsHtml(r):""}`;
