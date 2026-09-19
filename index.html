@@ -287,6 +287,7 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
     <div class="card stack">
       <div class="toggle"><div><b>Автоответ на 5★</b><div class="small muted">Включён: на отзывы 5★ ответ уходит сам, без вашей проверки. Выключен: каждый ответ ждёт кнопки «Отправить».</div></div><button class="sw" id="cAuto5" aria-label="Автоответ на 5 звёзд"></button></div>
       <div class="toggle"><div><b>Автоответ на 4★</b><div class="small muted">То же для отзывов 4★, включается отдельно. На 1–3★ и на вопросы сервис сам не отвечает никогда. Отзывы со стоп-словами и с фото тоже ждут вас.</div></div><button class="sw" id="cAuto4" aria-label="Автоответ на 4 звезды"></button></div>
+      <div class="toggle"><div><b>Не предлагать возврат</b><div class="small muted">Включено: ни в ответах на отзывы, ни в ответах на вопросы сервис не предлагает возврат, замену и оформление брака. Если слово «возврат» всё же попало в черновик, он пометится и не уйдёт сам.</div></div><button class="sw" id="cNoRet" aria-label="Не предлагать возврат"></button></div>
       <div class="toggle"><div><b>Сводка в Telegram</b><div class="small muted">Одно короткое сообщение ботом в рабочую группу магазина, когда появилось новое на проверку. Никого не отмечает.</div></div><button class="sw" id="cTg" aria-label="Сводка в Telegram"></button></div>
       <div class="toggle"><div><b>Отзывы с фото — всегда на проверку</b><div class="small muted">Фото чаще всего про брак или несоответствие</div></div><button class="sw" id="cPhoto" aria-label="Фото на проверку"></button></div>
     </div>
@@ -774,7 +775,7 @@ ${isQ?`Это ВОПРОС покупателя о товаре. Отвечай 
 Знания магазина об этом товаре: ${prod||"нет"}
 Товар: ${r.product} (артикул ${r.art}). Вопрос${r.user?" от "+r.user:""}: «${r.text}»`
 :`Это ОТЗЫВ ${r.stars}★ на «${r.product}» от покупателя ${r.user||"без имени"}. Текст: «${r.text||"(без текста)"}»${r.pros?"\nДостоинства: "+r.pros:""}${r.cons?"\nНедостатки: "+r.cons:""}${r.photo?"\nК отзыву приложено фото.":""}
-${prod?"Знания магазина об этом товаре: "+prod+"\n":""}Напиши 2–4 предложения по содержанию отзыва. При проблеме предлагай только штатный путь: возврат или обращение через личный кабинет площадки.`}
+${prod?"Знания магазина об этом товаре: "+prod+"\n":""}Напиши 2–4 предложения по содержанию отзыва. ${c.no_returns?"Возврат, замену и оформление брака НЕ предлагай.":"При проблеме предлагай только штатный путь: возврат или обращение через личный кабинет площадки."}`}
 Верни только текст ответа.`;
 }
 async function regen(r,ta,btn){
@@ -810,7 +811,7 @@ function renderRules(){
   const c=D.config(),ro=!isOwner();
   $("rulesNote").innerHTML=ro?'Вы вошли как менеджер: правила только для просмотра. <button class="btn sm" id="btnBeOwner">Я владелец</button>':((LIVE||dbase)?"Изменения сохраняются сразу и применяются при следующем прогоне воркера, в течение получаса.":"Демо-режим: правила хранятся в этом браузере.");
   const bo=$("btnBeOwner");if(bo)bo.addEventListener("click",()=>{S.role="owner";save();toast("Вы вошли как владелец");renderRules();});
-  $("cAuto5").classList.toggle("on",autoOn(c,5));$("cAuto4").classList.toggle("on",autoOn(c,4));$("cTg").classList.toggle("on",c.tg_mode==="summary");$("cPhoto").classList.toggle("on",!!c.photo_to_review);
+  $("cAuto5").classList.toggle("on",autoOn(c,5));$("cAuto4").classList.toggle("on",autoOn(c,4));$("cNoRet").classList.toggle("on",!!c.no_returns);$("cTg").classList.toggle("on",c.tg_mode==="summary");$("cPhoto").classList.toggle("on",!!c.photo_to_review);
   $("rulesList").innerHTML=[5,4,3,2,1,0].map(k=>{const r=c.rules[k]||DEFAULT_CONFIG.rules[k];return `<div class="rule">
     <div class="rh"><div>${k?starsHtml(k):"<b>Без текста</b>"} <span class="small muted">${STAR_HINT[k]}</span></div></div>
     <div class="seg wide" data-k="${k}">${Object.entries(MODES).filter(([m])=>!(m==="auto"&&k>=1&&k<=3)).map(([m,l])=>`<button data-v="${m}" class="${shownMode(c,k,r)===m?"active":""}">${l}</button>`).join("")}</div>
@@ -838,6 +839,7 @@ async function setStarAuto(k,on){          // автоответ отдельн�
 }
 $("cAuto5").addEventListener("click",()=>setStarAuto(5,!autoOn(D.config(),5)));
 $("cAuto4").addEventListener("click",()=>setStarAuto(4,!autoOn(D.config(),4)));
+$("cNoRet").addEventListener("click",async()=>{const v=!D.config().no_returns;if(await saveConfig({no_returns:v}))toast(v?"Возврат больше не предлагаем. Новые ответы будут без него.":"Возврат снова можно предлагать");renderRules();});
 $("cTg").addEventListener("click",async()=>{const v=D.config().tg_mode==="summary"?"off":"summary";if(await saveConfig({tg_mode:v}))toast(v==="off"?"Сводка в Telegram выключена":"Сводка в Telegram включена");renderRules();});
 $("cPhoto").addEventListener("click",async()=>{if(await saveConfig({photo_to_review:!D.config().photo_to_review}))toast("Сохранено");renderRules();});
 $("btnSaveVoice").addEventListener("click",async()=>{
