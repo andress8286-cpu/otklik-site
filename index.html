@@ -374,7 +374,7 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
       <p class="small">Воркер на компьютере магазина раз в полчаса забирает новые отзывы и вопросы, пишет черновики и выкладывает их сюда. Вы проверяете и нажимаете «Отправить». При следующем прогоне ответ уходит на площадку. Отзывы Ozon по API недоступны, с Ozon приходят только вопросы.</p>
     </div>
     <div class="card stack" id="orCard" hidden><h2>Мгновенная «Переписать ИИ»</h2><p class="small muted">Кнопка «Переписать ИИ» отвечает за несколько секунд, если вставить сюда ключ OpenRouter (openrouter.ai → Keys). Ключ вставляет только владелец, один раз: он сохраняется в настройках магазина и сам начинает работать у всех сотрудников (в течение нескольких минут). Бесплатные модели: до 50 запросов в день, после разового пополнения счёта на 10 $ — до 1000. Без ключа кнопка оставляет заявку, и ответ переписывается при следующем прогоне.</p>
-      <label class="f">Ключ OpenRouter<input type="password" id="orKey" autocomplete="off" placeholder="sk-or-…"></label>
+      <label class="f">Ключ OpenRouter<input type="password" id="orKey" name="otklik-or-key" autocomplete="new-password" data-lpignore="true" placeholder="sk-or-…"></label>
       <label class="f">Модель<select id="orModel"></select></label>
       <div class="row"><button class="btn primary" id="btnOrSave">Сохранить</button><span class="small muted" id="orSaved"></span></div></div>
     <div class="card stack" id="appCard" hidden><h2>Приложение на телефон</h2><p class="small muted">Сайт можно поставить как приложение: значок на главном экране, открывается на весь экран. На Android откройте сайт в Chrome → меню ⋮ → «Установить приложение» (или «Добавить на главный экран»). На компьютере — значок установки в адресной строке Chrome.</p><div class="row"><button class="btn primary" id="btnInstall" hidden>Установить приложение</button></div></div>
@@ -808,8 +808,11 @@ async function orRewrite(r,ta,btn){          // мгновенная перег�
     // выбранная модель первой, затем остальные: бесплатные модели бывают заняты, тогда сразу пробуем следующую
     const order=[o.model||OR_MODELS[0]].concat(OR_MODELS.filter(m=>m!==(o.model||OR_MODELS[0])));let resp=null,why="";
     for(const model of order){
-      resp=await fetch("https://openrouter.ai/api/v1/chat/completions",{method:"POST",headers:{Authorization:"Bearer "+o.key,"Content-Type":"application/json"},
-        body:JSON.stringify({model,temperature:0.8,max_tokens:1500,messages:[{role:"user",content:aiPrompt(r)+(cur?"\nПрежний вариант ответа (напиши по-другому, другими словами):\n"+cur:"")}]})});
+      const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),20000);          // модель молчит дольше 20 секунд — пробуем следующую
+      try{resp=await fetch("https://openrouter.ai/api/v1/chat/completions",{signal:ac.signal,method:"POST",headers:{Authorization:"Bearer "+o.key,"Content-Type":"application/json"},
+        body:JSON.stringify({model,temperature:0.8,max_tokens:1500,messages:[{role:"user",content:aiPrompt(r)+(cur?"\nПрежний вариант ответа (напиши по-другому, другими словами):\n"+cur:"")}]})});}
+      catch(e){clearTimeout(tm);resp={ok:false,status:0};why="модель не ответила за 20 секунд";continue;}
+      clearTimeout(tm);
       if(resp.ok)break;
       try{why=String(((await resp.json()).error||{}).message||"");}catch(e){why="";}
       if(resp.status===401||/data policy|privacy/i.test(why))break;
