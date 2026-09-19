@@ -808,10 +808,10 @@ async function orRewrite(r,ta,btn){          // мгновенная перег�
     // выбранная модель первой, затем остальные: бесплатные модели бывают заняты, тогда сразу пробуем следующую
     const order=[o.model||OR_MODELS[0]].concat(OR_MODELS.filter(m=>m!==(o.model||OR_MODELS[0])));let resp=null,why="";
     for(const model of order){
-      const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),20000);          // модель молчит дольше 20 секунд — пробуем следующую
+      const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),8000);          // модель молчит дольше 8 секунд — пробуем следующую
       try{resp=await fetch("https://openrouter.ai/api/v1/chat/completions",{signal:ac.signal,method:"POST",headers:{Authorization:"Bearer "+o.key,"Content-Type":"application/json"},
         body:JSON.stringify({model,temperature:0.8,max_tokens:1500,messages:[{role:"user",content:aiPrompt(r)+(cur?"\nПрежний вариант ответа (напиши по-другому, другими словами):\n"+cur:"")}]})});}
-      catch(e){clearTimeout(tm);resp={ok:false,status:0};why="модель не ответила за 20 секунд";continue;}
+      catch(e){clearTimeout(tm);resp={ok:false,status:0};why="модель не ответила за 8 секунд";continue;}
       clearTimeout(tm);
       if(resp.ok)break;
       try{why=String(((await resp.json()).error||{}).message||"");}catch(e){why="";}
