@@ -373,7 +373,7 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
       <h2>Как это работает</h2>
       <p class="small">Воркер на компьютере магазина раз в полчаса забирает новые отзывы и вопросы, пишет черновики и выкладывает их сюда. Вы проверяете и нажимаете «Отправить». При следующем прогоне ответ уходит на площадку. Отзывы Ozon по API недоступны, с Ozon приходят только вопросы.</p>
     </div>
-    <div class="card stack" id="orCard" hidden><h2>Мгновенная «Переписать ИИ»</h2><p class="small muted">Кнопка «Переписать ИИ» отвечает за несколько секунд, если вставить сюда ключ OpenRouter (openrouter.ai → Keys). Ключ хранится только в этом браузере. Бесплатные модели: до 50 запросов в день, после разового пополнения счёта на 10 $ — до 1000. Без ключа кнопка оставляет заявку, и ответ переписывается при следующем прогоне.</p>
+    <div class="card stack" id="orCard" hidden><h2>Мгновенная «Переписать ИИ»</h2><p class="small muted">Кнопка «Переписать ИИ» отвечает за несколько секунд, если вставить сюда ключ OpenRouter (openrouter.ai → Keys). Ключ вставляет только владелец, один раз: он сохраняется в настройках магазина и сам начинает работать у всех сотрудников (в течение нескольких минут). Бесплатные модели: до 50 запросов в день, после разового пополнения счёта на 10 $ — до 1000. Без ключа кнопка оставляет заявку, и ответ переписывается при следующем прогоне.</p>
       <label class="f">Ключ OpenRouter<input type="password" id="orKey" autocomplete="off" placeholder="sk-or-…"></label>
       <label class="f">Модель<select id="orModel"></select></label>
       <div class="row"><button class="btn primary" id="btnOrSave">Сохранить</button><span class="small muted" id="orSaved"></span></div></div>
@@ -799,7 +799,8 @@ ${prod?"Знания магазина об этом товаре: "+prod+"\n":""
 Верни только текст ответа.`;
 }
 const ORKEY="otklik.or",OR_MODELS=["deepseek/deepseek-v4-flash-0731:free","qwen/qwen3.8-27b:free","z-ai/glm-5.2:free","google/gemma-4-31b-it:free"];
-function orCfg(){try{return JSON.parse(localStorage.getItem(ORKEY))||{};}catch(e){return {};}}
+function orCfg(){let o={};try{o=JSON.parse(localStorage.getItem(ORKEY))||{};}catch(e){}const c=D.config();          // общий ключ из настроек магазина: менеджерам ничего вставлять не нужно
+  return {key:o.key||c.or_key||"",model:o.model||c.or_model||""};}
 async function orRewrite(r,ta,btn){          // мгновенная перегенерация: запрос идёт из браузера прямо в OpenRouter, с теми же правилами, знаниями и фактами
   const o=orCfg(),old=btn.textContent;btn.disabled=true;btn.innerHTML='<span class="spin"></span> Пишу…';
   try{
@@ -1041,6 +1042,7 @@ function renderSettings(){
 $("btnOrSave").addEventListener("click",()=>{
   const o=orCfg(),k=$("orKey").value.trim();if(k){if(!/^sk-or-/.test(k)){toast("Ключ OpenRouter начинается с sk-or-. Проверьте, что вставили именно его.");return;}o.key=k;}
   o.model=$("orModel").value;try{localStorage.setItem(ORKEY,JSON.stringify(o));}catch(e){toast("Браузер запретил сохранять ключ.");return;}
+  if(isOwner()&&(LIVE||dbase)){saveConfig(k?{or_key:o.key,or_model:o.model}:{or_model:o.model});}          // владелец сохраняет ключ для всех сотрудников
   $("orKey").value="";$("orSaved").textContent=o.key?"Сохранено. «Переписать ИИ» теперь отвечает сразу.":"Модель сохранена. Ключ ещё не вставлен.";
   toast(o.key?"Ключ сохранён в этом браузере":"Ключ ещё не вставлен");renderSettings();
 });
