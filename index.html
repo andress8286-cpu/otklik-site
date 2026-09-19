@@ -359,7 +359,7 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
       <h2>Как это работает</h2>
       <p class="small">Воркер на компьютере магазина раз в полчаса забирает новые отзывы и вопросы, пишет черновики и выкладывает их сюда. Вы проверяете и нажимаете «Отправить». При следующем прогоне ответ уходит на площадку. Отзывы Ozon по API недоступны, с Ozon приходят только вопросы.</p>
     </div>
-    <div class="card stack" id="accessCard" hidden><h2>Доступ</h2><p class="small" id="accessText"></p><div class="row"><button class="btn" id="btnLogout">Выйти на этом устройстве</button></div></div>
+    <div class="card stack" id="accessCard" hidden><h2>Доступ</h2><p class="small" id="accessText"></p><div class="row"><button class="btn primary" id="btnInvite">Скопировать ссылку для сотрудника</button><button class="btn" id="btnLogout">Выйти на этом устройстве</button></div><input type="text" id="inviteBox" readonly hidden><p class="small muted" id="inviteNote">По этой ссылке сотрудник входит, вписав только своё имя. Ссылка работает как ключ: отправляйте её только своим людям и только личным сообщением. Если сотрудник ушёл, удалите ключ на GitHub и сделайте новый.</p></div>
     <div class="card stack" id="demoCard"><h2>Демо-данные</h2><p class="small muted">Вернуть примеры к начальному виду. На живые данные не влияет.</p><button class="btn danger" id="btnReset">Сбросить демо</button></div>
   </div>
 </section>
@@ -367,7 +367,7 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
 </div>
 <div class="login" id="login" hidden><div class="card stack">
   <h1>Вход в «Отклик»</h1>
-  <p class="small muted">Введите ключ доступа. Его выдаёт владелец магазина. Ключ хранится только в этом браузере.</p>
+  <p class="small muted" id="lgHint">Введите ключ доступа. Его выдаёт владелец магазина. Ключ хранится только в этом браузере.</p>
   <label class="f">Ваше имя<input id="lgName" type="text" maxlength="30" autocomplete="name" placeholder="Например: Анна"></label>
   <label class="f">Кто вы<select id="lgRole"><option value="manager">Менеджер</option><option value="owner">Владелец</option></select></label>
   <label class="f">Ключ доступа<input id="lgToken" type="password" autocomplete="off" placeholder="github_pat_…"></label>
@@ -484,7 +484,9 @@ document.addEventListener("focusout",()=>{setTimeout(()=>{if(needRender&&!typing
 const GHCFG=Object.assign({owner:"andress8286-cpu",repo:"otklik-data",branch:"main",api:"https://api.github.com",poll:40000},window.OTKLIK_GH||{});
 const GH_MODE=!(window.claude&&window.claude.use)&&(!!window.OTKLIK_GH||/\.github\.io$/i.test(location.hostname)||/[?&]gh=1\b/.test(location.search));
 const GHKEY="otklik.gh";
-let GHUSER=null;
+let GHUSER=null,GHINVITE="";
+/* Ссылка-приглашение: …/#k=ключ. Часть после # на сервер не уходит; ключ сразу убираем из адресной строки и истории. */
+(function(){const m=/[#&]k=([A-Za-z0-9_]{20,})/.exec(location.hash||"");if(!m)return;GHINVITE=m[1];try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}})();
 function ghAuth(){try{return JSON.parse(localStorage.getItem(GHKEY))||null;}catch(e){return null;}}
 function ghDb(token,opts){
   opts=opts||{};
@@ -576,6 +578,7 @@ function ghDb(token,opts){
 }
 function showLogin(msg){
   $("login").hidden=false;$("lgErr").hidden=!msg;$("lgErr").textContent=msg||"";
+  if(GHINVITE&&!$("lgToken").value){$("lgToken").value=GHINVITE;$("lgHint").textContent="Ключ доступа уже вставлен. Впишите своё имя и нажмите «Войти».";}
   const a=ghAuth();if(a&&a.name&&!$("lgName").value)$("lgName").value=a.name;$("lgRole").value=(a&&S.role==="owner")?"owner":"manager";   // на новом устройстве по умолчанию «Менеджер»
 }
 $("lgDemo").addEventListener("click",()=>{$("login").hidden=true;});
@@ -589,7 +592,7 @@ $("lgGo").addEventListener("click",async()=>{
   if(!r.ok){err(r.status===401?"Ключ не подошёл. Проверьте, что он скопирован целиком.":r.status===404?"Этот ключ не открывает данные магазина. Попросите у владельца новый.":"GitHub не ответил, попробуйте ещё раз через минуту.");return;}
   try{localStorage.setItem(GHKEY,JSON.stringify({token,name}));}catch(e){err("Браузер запретил сохранять ключ. Отключите режим инкогнито.");return;}
   S.role=$("lgRole").value==="owner"?"owner":"manager";save();
-  $("lgToken").value="";btn.disabled=false;
+  $("lgToken").value="";GHINVITE="";btn.disabled=false;
   if(dbase){location.reload();return;}          // повторный вход после отозванного ключа: начинаем с чистого листа
   $("login").hidden=true;connect();
 });
@@ -943,8 +946,14 @@ function renderSettings(){
   $("statusBox").innerHTML=!LIVE?row("Данные","демо-примеры в этом браузере"):[row("Данные","живые, из базы сервиса"),st?row("Последний прогон",fmtDate(st.last_run)):"",st?row("Режим воркера",st.mode==="live"?"боевой: одобренное уходит на площадки":"тренировочный: на площадки ничего не уходит"):"",go("Автопилот 4–5★",c.autopilot?"включён":"выключен","rules"),go("Сводка в Telegram",c.tg_mode==="summary"?"включена"+(st&&st.tg_group?", группа «"+st.tg_group+"»":""):"выключена","rules"),go("Обучение",c.learning?"идёт":"остановлено","know"),st?row("Ждут проверки",`отзывов ${st.waiting_reviews}, вопросов ${st.waiting_questions}`):"",st&&st.left_new?row("Ещё не написано черновиков",String(st.left_new)):"",st&&st.errors&&st.errors.length?row("Ошибки отправки",st.errors.join("; ")):""].join("");
   $("statusBox").querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.go)));
   $("demoCard").hidden=LIVE||(GH_MODE&&!!dbase);
-  $("accessCard").hidden=!(GH_MODE&&GHUSER);if(GHUSER)$("accessText").textContent="Вы вошли как «"+GHUSER.name+"». Ключ доступа хранится только в этом браузере.";
+  $("accessCard").hidden=!(GH_MODE&&GHUSER);$("btnInvite").hidden=!isOwner();$("inviteNote").hidden=!isOwner();if(GHUSER)$("accessText").textContent="Вы вошли как «"+GHUSER.name+"». Ключ доступа хранится только в этом браузере.";
 }
+$("btnInvite").addEventListener("click",async()=>{
+  const a=ghAuth();if(!a||!a.token)return;
+  const link=location.origin+location.pathname+"#k="+a.token;
+  try{await navigator.clipboard.writeText(link);toast("Ссылка скопирована. Отправьте её сотруднику личным сообщением.");}
+  catch(e){const b=$("inviteBox");b.hidden=false;b.value=link;b.focus();b.select();toast("Скопируйте ссылку из поля и отправьте сотруднику личным сообщением.");}
+});
 $("btnLogout").addEventListener("click",()=>{if(!ask("logout","Выйти? Чтобы войти снова, понадобится ключ доступа."))return;try{localStorage.removeItem(GHKEY);}catch(e){}location.reload();});
 document.querySelectorAll("#roleSeg button").forEach(b=>b.addEventListener("click",()=>{S.role=b.dataset.v;save();renderSettings();}));
 $("btnReset").addEventListener("click",()=>{if(!ask("reset","Вернуть демо-примеры к начальному виду?"))return;S.demo=demoSeed();save();toast("Демо сброшено");render();});
