@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%23145C6B%27/%3E%3Cpath d=%27M9 11h14v9H15l-4 3v-3H9z%27 fill=%27%23fff%27/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#145C6B">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Отклик</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
@@ -245,7 +249,13 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
 .login{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
 .login[hidden]{display:none}
 .login .card{max-width:420px;width:100%;box-shadow:var(--shadow)}
-.rq{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.rq[hidden]{display:none}.rq input{flex:1;min-width:180px}
+.pilot #runText{min-width:0}
+@media (max-width:640px){
+  header.top{gap:8px;padding-block:8px}
+  .logo{margin-right:auto}
+  .pilot{order:9;flex:1 0 100%;margin-left:0;min-width:0;font-size:12px}
+  .pilot #runText{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
 </style>
 </head>
 <body>
@@ -266,7 +276,6 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
 </nav>
 
 <main>
-<div class="note" id="moveNote" hidden style="margin-bottom:12px">Идёт переезд на этот сайт. Всё, что вы здесь сделаете, сохранится и применится после переключения. До переключения рабочий сайт прежний.</div>
 <!-- ОТЗЫВЫ и ВОПРОСЫ: одна разметка на два раздела -->
 <section class="page" id="page-reviews"></section>
 <section class="page" id="page-questions"></section>
@@ -360,6 +369,7 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
       <h2>Как это работает</h2>
       <p class="small">Воркер на компьютере магазина раз в полчаса забирает новые отзывы и вопросы, пишет черновики и выкладывает их сюда. Вы проверяете и нажимаете «Отправить». При следующем прогоне ответ уходит на площадку. Отзывы Ozon по API недоступны, с Ozon приходят только вопросы.</p>
     </div>
+    <div class="card stack" id="appCard" hidden><h2>Приложение на телефон</h2><p class="small muted">Сайт можно поставить как приложение: значок на главном экране, открывается на весь экран. На Android откройте сайт в Chrome → меню ⋮ → «Установить приложение» (или «Добавить на главный экран»). На компьютере — значок установки в адресной строке Chrome.</p><div class="row"><button class="btn primary" id="btnInstall" hidden>Установить приложение</button></div></div>
     <div class="card stack" id="accessCard" hidden><h2>Доступ</h2><p class="small" id="accessText"></p><div class="row"><button class="btn primary" id="btnInvite">Скопировать ссылку для сотрудника</button><button class="btn" id="btnLogout">Выйти на этом устройстве</button></div><input type="text" id="inviteBox" readonly hidden><p class="small muted" id="inviteNote">По этой ссылке сотрудник входит, вписав только своё имя. Ссылка работает как ключ: отправляйте её только своим людям и только личным сообщением. Если сотрудник ушёл, удалите ключ на GitHub и сделайте новый.</p></div>
     <div class="card stack" id="demoCard"><h2>Демо-данные</h2><p class="small muted">Вернуть примеры к начальному виду. На живые данные не влияет.</p><button class="btn danger" id="btnReset">Сбросить демо</button></div>
   </div>
@@ -640,7 +650,6 @@ function renderTop(){
   const nr=waitingOf("review").length,nq=waitingOf("question").length;
   const br=$("badgeR"),bq=$("badgeQ");br.hidden=!nr;br.textContent=nr;bq.hidden=!nq;bq.textContent=nq;
   const st=D.status(),dot=$("runDot"),tx=$("runText");
-  $("moveNote").hidden=!(GH_MODE&&LIVE&&st&&!st.gh_inputs);
   if(dbError){dot.className="dot";tx.textContent="Нет связи с базой: "+dbError;return;}
   if(!LIVE){dot.className="dot";tx.textContent=dbase?(GH_MODE?"Загружаю данные…":"Демо: база пока пуста"):"Демо-режим";return;}
   if(!st){dot.className="dot";tx.textContent="Данные живые";return;}
@@ -683,6 +692,14 @@ function renderList(page){
   box.querySelectorAll("[data-act]").forEach(b=>b.addEventListener("click",()=>act(b.dataset.act,b.dataset.id,b)));
   box.querySelectorAll("textarea[data-id]").forEach(t=>t.addEventListener("input",()=>{DRAFTS[t.dataset.id]=t.value;paintChecks(t.dataset.id,t.value);}));
 }
+const ALT={};               // какой из вариантов ответа сейчас показан: id → номер
+function variantsOf(r){const out=[];[r.reply].concat(Array.isArray(r.alts)?r.alts:[]).forEach(t=>{t=String(t||"").trim();if(t&&!out.includes(t))out.push(t);});return out;}
+function factsHtml(r){
+  const chars=String(r.facts||"").split(/;\s*Описание:/)[0].trim();          // описание с карточки не показываем: длинное и рекламное
+  const know=D.skills().filter(s=>s.enabled!==false&&s.kind==="product"&&normArt(s.art)&&normArt(s.art)===normArt(r.art)).map(s=>String(s.text||"").trim()).filter(Boolean).join("\n");
+  if(!chars&&!know)return "";
+  return `<details class="facts"><summary>Что известно о товаре</summary>${chars?`<div class="small"><b>Характеристики:</b> ${esc(chars)}</div>`:""}${know?`<div class="small" style="white-space:pre-line"><b>Знания магазина:</b>\n${esc(know)}</div>`:""}</details>`;
+}
 function card(r){
   const cab=cabOf(r.kab),isQ=r.kind==="question",waitSt=WAIT_ST.includes(r.status);
   const draft=DRAFTS[r.id]!=null?DRAFTS[r.id]:(r.reply||"");
@@ -690,14 +707,14 @@ function card(r){
     <div class="prod"><b>${esc(r.art||"")}</b>${r.art?" · ":""}${esc(r.product||"")}${r.category?" · "+esc(r.category):""}</div>
     ${r.text?`<div class="txt">${esc(r.text)}</div>`:'<div class="txt muted">Без текста</div>'}
     ${(r.pros||r.cons)?`<div class="pc">${r.pros?`<span class="plus"><b>Плюсы:</b> ${esc(r.pros)}</span>`:""}${r.cons?`<span class="minus"><b>Минусы:</b> ${esc(r.cons)}</span>`:""}</div>`:""}
-    ${isQ&&r.facts?`<details class="facts"><summary>Что известно из карточки товара</summary><div class="small">${esc(r.facts)}</div></details>`:""}`;
+    ${isQ?factsHtml(r):""}`;
   let body;
   if(waitSt){
     const chk=checkRules(draft);
     body=`<div class="reply"><div class="lbl">${r.reply?"Черновик"+(r.reply_src?" · "+esc(r.reply_src):""):"Напишите ответ"}${r.reason?" · "+esc(r.reason):""}</div>
       <textarea data-id="${esc(r.id)}" id="ta-${esc(r.id)}" placeholder="Ответ покупателю…">${esc(draft)}</textarea>
       <div class="checks" id="chk-${esc(r.id)}">${checksHtml(chk)}</div>
-      <div class="actions"><button class="btn primary" data-act="send" data-id="${esc(r.id)}" ${chk.length?"disabled":""}>Отправить</button><button class="btn" data-act="regen" data-id="${esc(r.id)}">Переписать ИИ</button></div>${GH_MODE?`<div class="rq" id="rq-${esc(r.id)}" hidden><input type="text" id="rqi-${esc(r.id)}" maxlength="300" placeholder="Что поправить? Например: короче, мягче. Можно не заполнять"><button class="btn sm primary" data-act="rqsend" data-id="${esc(r.id)}">Попросить ИИ</button></div>`:""}</div>`;
+      <div class="actions"><button class="btn primary" data-act="send" data-id="${esc(r.id)}" ${chk.length?"disabled":""}>Отправить</button>${variantsOf(r).length>1?`<button class="btn" data-act="alt" data-id="${esc(r.id)}">Другой вариант · ${((ALT[r.id]||0)%variantsOf(r).length)+1}/${variantsOf(r).length}</button>`:""}<button class="btn" data-act="regen" data-id="${esc(r.id)}">Переписать ИИ</button></div></div>`;
   }else{
     const lbl=r.status==="approved"?"Одобрено. Уйдёт на площадку при следующем прогоне":(r.sent_by==="auto"?"Ответил сам":"Отправлено")+(r.sent?" · "+fmtDate(r.sent):"");
     body=`<div class="reply"><div class="lbl">${esc(lbl)}${r.err?' · <span class="chip bad">ошибка отправки</span>':""}</div><div class="body">${esc(r.reply||"")}</div>
@@ -732,11 +749,9 @@ async function act(a,id,btn){
       toast(LIVE?"Одобрено. Уйдёт на площадку при следующем прогоне.":"Отправлено (демо).");
     }
     else if(a==="back"){btn.disabled=true;await decide(r,"manual","");toast("Возвращено на проверку.");}
-    else if(a==="rqsend"){
-      const inp=$("rqi-"+id),hint=inp?inp.value.trim():"";btn.disabled=true;
-      await writeDoc("requests/"+id,{hint,by:by(),ts:new Date().toISOString()});
-      const i=L.requests.findIndex(x=>x.id===id),q={id,hint};if(i>=0)L.requests[i]=q;else L.requests.push(q);
-      toast("Заявка принята. ИИ перепишет ответ при ближайшем прогоне, обычно в течение получаса.");
+    else if(a==="alt"){          // запасные варианты написаны заранее — переключение мгновенное, без ожидания ИИ
+      const v=variantsOf(r);if(v.length<2)return;ALT[id]=((ALT[id]||0)+1)%v.length;const t=v[ALT[id]];
+      if(ta){ta.value=t;DRAFTS[id]=t;paintChecks(id,t);}btn.textContent="Другой вариант · "+(ALT[id]+1)+"/"+v.length;return;
     }
     else if(a==="regen"){await regen(r,ta,btn);return;}
   }catch(e){toast("Не получилось сохранить: "+errText(e)+". Попробуйте ещё раз.");if(btn)btn.disabled=false;return;}
@@ -763,7 +778,11 @@ ${prod?"Знания магазина об этом товаре: "+prod+"\n":""
 Верни только текст ответа.`;
 }
 async function regen(r,ta,btn){
-  if(!sample&&GH_MODE&&dbase){const row=$("rq-"+r.id);if(row){row.hidden=!row.hidden;if(!row.hidden){const i=row.querySelector("input");if(i)i.focus();}}return;}   // вне Claude ИИ пишет воркер: оставляем ему заявку
+  if(!sample&&GH_MODE&&dbase){          // вне Claude тексты пишет воркер: одно нажатие — заявка ему, без дополнительных вопросов
+    if(r.rewrite||L.requests.some(x=>x.id===r.id)){toast("Заявка уже принята: новый ответ появится после ближайшего прогона.");return;}
+    btn.disabled=true;await writeDoc("requests/"+r.id,{hint:"",by:by(),ts:new Date().toISOString()});L.requests.push({id:r.id,hint:""});
+    toast("Принято: ИИ перепишет ответ при ближайшем прогоне."+(variantsOf(r).length>1?" Быстрее — кнопка «Другой вариант».":""));needRender=false;render();return;
+  }
   if(!sample){toast("ИИ на этой странице недоступен. Напишите ответ вручную или дождитесь нового черновика.");return;}
   const old=btn.textContent;btn.disabled=true;btn.innerHTML='<span class="spin"></span> Пишу…';
   try{
@@ -963,8 +982,11 @@ function renderSettings(){
   $("statusBox").innerHTML=!LIVE?row("Данные","демо-примеры в этом браузере"):[row("Данные","живые, из базы сервиса"),st?row("Последний прогон",fmtDate(st.last_run)):"",st?row("Режим воркера",st.mode==="live"?"боевой: одобренное уходит на площадки":"тренировочный: на площадки ничего не уходит"):"",go("Автоответы",autoOn(c,5)&&autoOn(c,4)?"на 5★ и 4★":autoOn(c,5)?"только на 5★":autoOn(c,4)?"только на 4★":"выключены","rules"),go("Сводка в Telegram",c.tg_mode==="summary"?"включена"+(st&&st.tg_group?", группа «"+st.tg_group+"»":""):"выключена","rules"),go("Обучение",c.learning?"идёт":"остановлено","know"),st?row("Ждут проверки",`отзывов ${st.waiting_reviews}, вопросов ${st.waiting_questions}`):"",st&&st.left_new?row("Ещё не написано черновиков",String(st.left_new)):"",st&&st.errors&&st.errors.length?row("Ошибки отправки",st.errors.join("; ")):""].join("");
   $("statusBox").querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.go)));
   $("demoCard").hidden=LIVE||(GH_MODE&&!!dbase);
-  $("accessCard").hidden=!(GH_MODE&&GHUSER);$("btnInvite").hidden=!isOwner();$("inviteNote").hidden=!isOwner();if(GHUSER)$("accessText").textContent="Вы вошли как «"+GHUSER.name+"». Ключ доступа хранится только в этом браузере.";
+  $("appCard").hidden=!GH_MODE;$("accessCard").hidden=!(GH_MODE&&GHUSER);$("btnInvite").hidden=!isOwner();$("inviteNote").hidden=!isOwner();if(GHUSER)$("accessText").textContent="Вы вошли как «"+GHUSER.name+"». Ключ доступа хранится только в этом браузере.";
 }
+let installEvt=null;          // Chrome сообщает, что сайт можно установить как приложение
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;$("btnInstall").hidden=false;});
+$("btnInstall").addEventListener("click",async()=>{if(!installEvt)return;installEvt.prompt();try{await installEvt.userChoice;}catch(e){}installEvt=null;$("btnInstall").hidden=true;});
 $("btnInvite").addEventListener("click",async()=>{
   const a=ghAuth();if(!a||!a.token)return;
   const link=location.origin+location.pathname+"#k="+a.token;
@@ -983,5 +1005,6 @@ $("btnTheme").addEventListener("click",()=>{let cur=null;try{cur=localStorage.ge
 /* ================= ЗАПУСК ================= */
 applyTheme();showPage(S.page);connect();
 </script>
+<script>if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});</script>
 </body>
 </html>
