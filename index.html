@@ -1035,6 +1035,8 @@ function renderSettings(){
   if(GH_MODE&&dbase){$("roleSeg").hidden=true;$("roleText").hidden=false;$("roleText").innerHTML=GHOWNER?"Вы вошли с <b>ключом владельца</b>.":"Вы вошли с <b>ключом менеджера</b>.";}
   $("mkeyWrap").hidden=!isOwner();$("mkeyHelp").hidden=!isOwner();try{if(!$("mKey").value)$("mKey").value=localStorage.getItem("otklik.mkey")||"";}catch(e){}
   $("orCard").hidden=!GH_MODE;
+  if(GH_MODE&&isOwner()&&cfgReady&&!window.__orSynced){let lk="";try{lk=(JSON.parse(localStorage.getItem(ORKEY))||{}).key||"";}catch(e){}
+    if(lk&&!D.config().or_key){window.__orSynced=true;saveConfig({or_key:lk});toast("Ключ нейросети из этого устройства сохранён для всех устройств и сотрудников.");}}          // ключ, сохранённый раньше только в этом браузере, делаем общим
   if(GH_MODE){const o0=orCfg();$("orKey").placeholder=o0.key?"ключ сохранён: "+o0.key.slice(0,9)+"…"+o0.key.slice(-4)+" (вставьте новый, чтобы заменить)":"sk-or-…";}
   if(GH_MODE&&!$("orModel").options.length){const o=orCfg();$("orModel").innerHTML=OR_MODELS.map(m=>`<option value="${m}" ${o.model===m?"selected":""}>${m.replace(":free","")} (бесплатная)</option>`).join("");if(o.key)$("orSaved").textContent="Ключ сохранён в этом браузере";}
   $("appCard").hidden=!GH_MODE;$("accessCard").hidden=!(GH_MODE&&GHUSER);$("btnInvite").hidden=!isOwner();$("inviteNote").hidden=!isOwner();if(GHUSER)$("accessText").textContent="Вы вошли как «"+GHUSER.name+"». Ключ доступа хранится только в этом браузере.";
@@ -1042,7 +1044,7 @@ function renderSettings(){
 $("btnOrSave").addEventListener("click",()=>{
   const o=orCfg(),k=$("orKey").value.trim();if(k){if(!/^sk-or-/.test(k)){toast("Ключ OpenRouter начинается с sk-or-. Проверьте, что вставили именно его.");return;}o.key=k;}
   o.model=$("orModel").value;try{localStorage.setItem(ORKEY,JSON.stringify(o));}catch(e){toast("Браузер запретил сохранять ключ.");return;}
-  if(isOwner()&&(LIVE||dbase)){saveConfig(k?{or_key:o.key,or_model:o.model}:{or_model:o.model});}          // владелец сохраняет ключ для всех сотрудников
+  if(isOwner()&&(LIVE||dbase)){saveConfig(o.key?{or_key:o.key,or_model:o.model}:{or_model:o.model});}          // владелец сохраняет ключ для всех сотрудников
   $("orKey").value="";$("orSaved").textContent=o.key?"Сохранено. «Переписать ИИ» теперь отвечает сразу.":"Модель сохранена. Ключ ещё не вставлен.";
   toast(o.key?"Ключ сохранён в этом браузере":"Ключ ещё не вставлен");renderSettings();
 });
