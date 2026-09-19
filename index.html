@@ -372,6 +372,10 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
       <h2>Как это работает</h2>
       <p class="small">Воркер на компьютере магазина раз в полчаса забирает новые отзывы и вопросы, пишет черновики и выкладывает их сюда. Вы проверяете и нажимаете «Отправить». При следующем прогоне ответ уходит на площадку. Отзывы Ozon по API недоступны, с Ozon приходят только вопросы.</p>
     </div>
+    <div class="card stack" id="orCard" hidden><h2>Мгновенная «Переписать ИИ»</h2><p class="small muted">Кнопка «Переписать ИИ» отвечает за несколько секунд, если вставить сюда ключ OpenRouter (openrouter.ai → Keys). Ключ хранится только в этом браузере. Бесплатные модели: до 50 запросов в день, после разового пополнения счёта на 10 $ — до 1000. Без ключа кнопка оставляет заявку, и ответ переписывается при следующем прогоне.</p>
+      <label class="f">Ключ OpenRouter<input type="password" id="orKey" autocomplete="off" placeholder="sk-or-…"></label>
+      <label class="f">Модель<select id="orModel"></select></label>
+      <div class="row"><button class="btn primary" id="btnOrSave">Сохранить</button><span class="small muted" id="orSaved"></span></div></div>
     <div class="card stack" id="appCard" hidden><h2>Приложение на телефон</h2><p class="small muted">Сайт можно поставить как приложение: значок на главном экране, открывается на весь экран. На Android откройте сайт в Chrome → меню ⋮ → «Установить приложение» (или «Добавить на главный экран»). На компьютере — значок установки в адресной строке Chrome.</p><div class="row"><button class="btn primary" id="btnInstall" hidden>Установить приложение</button></div></div>
     <div class="card stack" id="accessCard" hidden><h2>Доступ</h2><p class="small" id="accessText"></p><label class="f" id="mkeyWrap" hidden>Ключ для сотрудников (ключ менеджера, не ваш)<input type="password" id="mKey" autocomplete="off" placeholder="github_pat_…"></label><div class="row"><button class="btn primary" id="btnInvite">Скопировать ссылку для сотрудника</button><button class="btn" id="btnLogout">Выйти на этом устройстве</button></div><input type="text" id="inviteBox" readonly hidden><p class="small muted" id="inviteNote">По этой ссылке сотрудник входит, вписав только своё имя. Ссылка работает как ключ: отправляйте её только своим людям и только личным сообщением. Если сотрудник ушёл, удалите ключ на GitHub и сделайте новый.</p></div>
     <div class="card stack" id="demoCard"><h2>Демо-данные</h2><p class="small muted">Вернуть примеры к начальному виду. На живые данные не влияет.</p><button class="btn danger" id="btnReset">Сбросить демо</button></div>
@@ -793,7 +797,25 @@ ${isQ?`Это ВОПРОС покупателя о товаре. Отвечай 
 ${prod?"Знания магазина об этом товаре: "+prod+"\n":""}Напиши 2–4 предложения по содержанию отзыва. ${c.no_returns?"Возврат, замену и оформление брака НЕ предлагай.":"При проблеме предлагай только штатный путь: возврат или обращение через личный кабинет площадки."}`}
 Верни только текст ответа.`;
 }
+const ORKEY="otklik.or",OR_MODELS=["deepseek/deepseek-v4-flash-0731:free","qwen/qwen3.8-27b:free","z-ai/glm-5.2:free","google/gemma-4-31b-it:free"];
+function orCfg(){try{return JSON.parse(localStorage.getItem(ORKEY))||{};}catch(e){return {};}}
+async function orRewrite(r,ta,btn){          // мгновенная перегенерация: запрос идёт из браузера прямо в OpenRouter, с теми же правилами, знаниями и фактами
+  const o=orCfg(),old=btn.textContent;btn.disabled=true;btn.innerHTML='<span class="spin"></span> Пишу…';
+  try{
+    const cur=(ta&&ta.value.trim())||r.reply||"";
+    const resp=await fetch("https://openrouter.ai/api/v1/chat/completions",{method:"POST",headers:{Authorization:"Bearer "+o.key,"Content-Type":"application/json"},
+      body:JSON.stringify({model:o.model||OR_MODELS[0],temperature:0.8,max_tokens:600,messages:[{role:"user",content:aiPrompt(r)+(cur?"\nПрежний вариант ответа (напиши по-другому, другими словами):\n"+cur:"")}]})});
+    if(!resp.ok){toast(resp.status===401?"Ключ OpenRouter не подошёл. Проверьте его под шестерёнкой.":resp.status===429?"Дневной лимит бесплатных запросов исчерпан или модель занята. Попробуйте другую модель под шестерёнкой.":"Нейросеть не ответила ("+resp.status+"). Попробуйте ещё раз.");return;}
+    const j=await resp.json(),t=String((((j.choices||[])[0]||{}).message||{}).content||"").replace(/<think>[\s\S]*?<\/think>/g,"").trim();
+    if(!t){toast("Нейросеть вернула пустой ответ. Попробуйте ещё раз или другую модель.");return;}
+    if(/^НЕТ ДАННЫХ/i.test(t)){toast("В карточке и знаниях нет ответа. Напишите сами: ответ сохранится как знание о товаре.");return;}
+    if(D.config().no_returns&&/возврат/i.test(t))toast("Внимание: в новом тексте есть слово «возврат», а у вас включено «Не предлагать возврат».");
+    if(ta){ta.value=t;DRAFTS[r.id]=t;paintChecks(r.id,t);}
+  }catch(e){toast("Нет связи с нейросетью. Проверьте интернет и попробуйте ещё раз.");}
+  finally{btn.disabled=false;btn.textContent=old;}
+}
 async function regen(r,ta,btn){
+  if(!sample&&GH_MODE&&orCfg().key){await orRewrite(r,ta,btn);return;}
   if(!sample&&GH_MODE&&dbase){          // вне Claude тексты пишет воркер: одно нажатие — заявка ему, без дополнительных вопросов
     if(r.rewrite||L.requests.some(x=>x.id===r.id)){toast("Заявка уже принята: новый ответ появится после ближайшего прогона.");return;}
     btn.disabled=true;await writeDoc("requests/"+r.id,{hint:"",by:by(),ts:new Date().toISOString()});L.requests.push({id:r.id,hint:""});
@@ -1001,8 +1023,15 @@ function renderSettings(){
   $("demoCard").hidden=LIVE||(GH_MODE&&!!dbase);
   if(GH_MODE&&dbase){$("roleSeg").hidden=true;$("roleText").hidden=false;$("roleText").innerHTML=GHOWNER?"Вы вошли с <b>ключом владельца</b>.":"Вы вошли с <b>ключом менеджера</b>.";}
   $("mkeyWrap").hidden=!isOwner();try{if(!$("mKey").value)$("mKey").value=localStorage.getItem("otklik.mkey")||"";}catch(e){}
+  $("orCard").hidden=!GH_MODE;
+  if(GH_MODE&&!$("orModel").options.length){const o=orCfg();$("orModel").innerHTML=OR_MODELS.map(m=>`<option value="${m}" ${o.model===m?"selected":""}>${m.replace(":free","")} (бесплатная)</option>`).join("");if(o.key)$("orSaved").textContent="Ключ сохранён в этом браузере";}
   $("appCard").hidden=!GH_MODE;$("accessCard").hidden=!(GH_MODE&&GHUSER);$("btnInvite").hidden=!isOwner();$("inviteNote").hidden=!isOwner();if(GHUSER)$("accessText").textContent="Вы вошли как «"+GHUSER.name+"». Ключ доступа хранится только в этом браузере.";
 }
+$("btnOrSave").addEventListener("click",()=>{
+  const o=orCfg(),k=$("orKey").value.trim();if(k){if(!/^sk-or-/.test(k)){toast("Ключ OpenRouter начинается с sk-or-. Проверьте, что вставили именно его.");return;}o.key=k;}
+  o.model=$("orModel").value;try{localStorage.setItem(ORKEY,JSON.stringify(o));}catch(e){toast("Браузер запретил сохранять ключ.");return;}
+  $("orKey").value="";$("orSaved").textContent=o.key?"Сохранено. «Переписать ИИ» теперь отвечает сразу.":"Модель сохранена. Ключ ещё не вставлен.";
+});
 let installEvt=null;          // Chrome сообщает, что сайт можно установить как приложение
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;$("btnInstall").hidden=false;});
 $("btnInstall").addEventListener("click",async()=>{if(!installEvt)return;installEvt.prompt();try{await installEvt.userChoice;}catch(e){}installEvt=null;$("btnInstall").hidden=true;});
