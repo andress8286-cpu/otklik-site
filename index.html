@@ -276,7 +276,8 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
   <div class="stack">
     <div><h1>Правила</h1><p class="muted small" id="rulesNote"></p></div>
     <div class="card stack">
-      <div class="toggle"><div><b>Автопилот для 4–5★</b><div class="small muted">Выключен: каждый ответ ждёт вашей кнопки «Отправить». Включён: на отзывы с режимом «отвечает сам» ответ уходит без проверки. Вопросы сами не уходят никогда.</div></div><button class="sw" id="cAutopilot" aria-label="Автопилот"></button></div>
+      <div class="toggle"><div><b>Автоответ на 5★</b><div class="small muted">Включён: на отзывы 5★ ответ уходит сам, без вашей проверки. Выключен: каждый ответ ждёт кнопки «Отправить».</div></div><button class="sw" id="cAuto5" aria-label="Автоответ на 5 звёзд"></button></div>
+      <div class="toggle"><div><b>Автоответ на 4★</b><div class="small muted">То же для отзывов 4★, включается отдельно. На 1–3★ и на вопросы сервис сам не отвечает никогда. Отзывы со стоп-словами и с фото тоже ждут вас.</div></div><button class="sw" id="cAuto4" aria-label="Автоответ на 4 звезды"></button></div>
       <div class="toggle"><div><b>Сводка в Telegram</b><div class="small muted">Одно короткое сообщение ботом в рабочую группу магазина, когда появилось новое на проверку. Никого не отмечает.</div></div><button class="sw" id="cTg" aria-label="Сводка в Telegram"></button></div>
       <div class="toggle"><div><b>Отзывы с фото — всегда на проверку</b><div class="small muted">Фото чаще всего про брак или несоответствие</div></div><button class="sw" id="cPhoto" aria-label="Фото на проверку"></button></div>
     </div>
@@ -383,7 +384,9 @@ const CABS=[{id:"kab1",label:"WB Каб 1",full:"WB · Каб 1",platform:"wb"},
 const TYPES={thanks:"Благодарность",thanks_reco:"Благодарность + рекомендация",clarify:"Разбор замечания",apology:"Извинение + решение",escalate:"Извинение + возврат по браку"};
 const TONES={friendly:"Дружелюбно",formal:"Официально",expert:"Экспертно"};
 const MODES={auto:"Отвечает сам",draft:"Черновик мне",manual:"Вручную"};
-const STAR_HINT={5:"довольные",4:"довольные с замечанием",3:"сомневаются",2:"недовольны",1:"очень недовольны",0:"только оценка, без текста"};
+const STAR_HINT={5:"довольные",4:"довольные с замечанием",3:"сомневаются",2:"недовольны",1:"очень недовольны",0:"только оценка 4–5★, без текста; сам отвечает, только если автоответ на эту оценку включён"};
+const autoOn=(c,k)=>!!c.autopilot&&!!c.rules[k]&&c.rules[k].mode==="auto";          // автоответ включён именно для оценки k (4 или 5)
+const shownMode=(c,k,r)=>r.mode!=="auto"?r.mode:(k===0?"auto":(((k===4||k===5)&&autoOn(c,k))?"auto":"draft"));   // «отвечает сам» показываем, только когда он действительно работает
 const DEFAULT_CONFIG={learning:true,autopilot:false,tg_mode:"off",photo_to_review:true,brand:"Наш магазин",signer:"Команда магазина",address:"вы",
   stop_words:["брак","подмена","верните деньги","суд","обман","мошенник","не тот товар","пустая коробка"],never_promise:"скидки, возврат денег напрямую, замену без оформления возврата, наличие на складе",
   rules:{5:{mode:"auto",type:"thanks_reco",tone:"friendly"},4:{mode:"auto",type:"thanks",tone:"friendly"},3:{mode:"draft",type:"clarify",tone:"expert"},2:{mode:"draft",type:"apology",tone:"formal"},1:{mode:"manual",type:"escalate",tone:"formal"},0:{mode:"auto",type:"thanks",tone:"friendly"}}};
@@ -788,20 +791,34 @@ function renderRules(){
   const c=D.config(),ro=!isOwner();
   $("rulesNote").innerHTML=ro?'Вы вошли как менеджер: правила только для просмотра. <button class="btn sm" id="btnBeOwner">Я владелец</button>':((LIVE||dbase)?"Изменения сохраняются сразу и применяются при следующем прогоне воркера, в течение получаса.":"Демо-режим: правила хранятся в этом браузере.");
   const bo=$("btnBeOwner");if(bo)bo.addEventListener("click",()=>{S.role="owner";save();toast("Вы вошли как владелец");renderRules();});
-  $("cAutopilot").classList.toggle("on",!!c.autopilot);$("cTg").classList.toggle("on",c.tg_mode==="summary");$("cPhoto").classList.toggle("on",!!c.photo_to_review);
+  $("cAuto5").classList.toggle("on",autoOn(c,5));$("cAuto4").classList.toggle("on",autoOn(c,4));$("cTg").classList.toggle("on",c.tg_mode==="summary");$("cPhoto").classList.toggle("on",!!c.photo_to_review);
   $("rulesList").innerHTML=[5,4,3,2,1,0].map(k=>{const r=c.rules[k]||DEFAULT_CONFIG.rules[k];return `<div class="rule">
     <div class="rh"><div>${k?starsHtml(k):"<b>Без текста</b>"} <span class="small muted">${STAR_HINT[k]}</span></div></div>
-    <div class="seg wide" data-k="${k}">${Object.entries(MODES).map(([m,l])=>`<button data-v="${m}" class="${r.mode===m?"active":""}">${l}</button>`).join("")}</div>
+    <div class="seg wide" data-k="${k}">${Object.entries(MODES).filter(([m])=>!(m==="auto"&&k>=1&&k<=3)).map(([m,l])=>`<button data-v="${m}" class="${shownMode(c,k,r)===m?"active":""}">${l}</button>`).join("")}</div>
     <div class="opts"><label class="f">Тип ответа<select data-k="${k}" data-f="type">${Object.entries(TYPES).map(([v,l])=>`<option value="${v}" ${r.type===v?"selected":""}>${l}</option>`).join("")}</select></label>
     <label class="f">Тон<select data-k="${k}" data-f="tone">${Object.entries(TONES).map(([v,l])=>`<option value="${v}" ${r.tone===v?"selected":""}>${l}</option>`).join("")}</select></label></div></div>`;}).join("");
-  const setRule=async(k,f,v)=>{const rules=clone(D.config().rules);rules[k]=Object.assign({},rules[k],{[f]:v});if(await saveConfig({rules})){toast("Сохранено");}renderRules();};
+  const setRule=async(k,f,v)=>{
+    if(f==="mode"&&v==="auto"&&(k==="4"||k==="5")){await setStarAuto(+k,true);return;}
+    const c0=D.config(),rules=clone(c0.rules);rules[k]=Object.assign({},rules[k],{[f]:v});const p={rules};
+    if(f==="mode"&&(k==="4"||k==="5"))p.autopilot=!!c0.autopilot&&["4","5"].some(s=>rules[s].mode==="auto");
+    if(await saveConfig(p)){toast("Сохранено");}renderRules();};
   $("rulesList").querySelectorAll(".seg button").forEach(b=>b.addEventListener("click",()=>setRule(b.parentNode.dataset.k,"mode",b.dataset.v)));
   $("rulesList").querySelectorAll("select").forEach(s=>s.addEventListener("change",()=>setRule(s.dataset.k,s.dataset.f,s.value)));
   if(!voiceDirty){$("cBrand").value=c.brand||"";$("cSigner").value=c.signer||"";$("cAddress").value=c.address||"вы";$("cStop").value=(c.stop_words||[]).join(", ");$("cNever").value=c.never_promise||"";}
   document.querySelectorAll("#page-rules select,#page-rules input,#page-rules textarea").forEach(el=>el.disabled=ro);
   document.querySelectorAll("#page-rules .seg button,#page-rules .sw,#btnSaveVoice").forEach(el=>{el.disabled=false;el.style.opacity=ro?".55":"";});
 }
-$("cAutopilot").addEventListener("click",async()=>{const v=!D.config().autopilot;if(v&&!ask("ap","Автопилот: ответы на 4–5★ с режимом «отвечает сам» будут уходить без вашей проверки."))return;if(await saveConfig({autopilot:v}))toast(v?"Автопилот включён":"Автопилот выключен");renderRules();});
+async function setStarAuto(k,on){          // автоответ отдельно для 5★ и для 4★
+  if(!isOwner()){toast("Правила меняет только владелец. Переключить роль можно под шестерёнкой.");return;}
+  const c=D.config(),rules=clone(c.rules),other=k===5?4:5,otherOn=autoOn(c,other);
+  if(on&&!ask("auto"+k,"Автоответ на "+k+"★: ответы на такие отзывы будут уходить без вашей проверки."))return;
+  rules[k]=Object.assign({},rules[k],{mode:on?"auto":"draft"});
+  if(!otherOn&&rules[other].mode==="auto")rules[other]=Object.assign({},rules[other],{mode:"draft"});   // вторая оценка не должна включиться заодно
+  if(await saveConfig({rules,autopilot:on||otherOn}))toast("Автоответ на "+k+"★ "+(on?"включён":"выключен"));
+  renderRules();
+}
+$("cAuto5").addEventListener("click",()=>setStarAuto(5,!autoOn(D.config(),5)));
+$("cAuto4").addEventListener("click",()=>setStarAuto(4,!autoOn(D.config(),4)));
 $("cTg").addEventListener("click",async()=>{const v=D.config().tg_mode==="summary"?"off":"summary";if(await saveConfig({tg_mode:v}))toast(v==="off"?"Сводка в Telegram выключена":"Сводка в Telegram включена");renderRules();});
 $("cPhoto").addEventListener("click",async()=>{if(await saveConfig({photo_to_review:!D.config().photo_to_review}))toast("Сохранено");renderRules();});
 $("btnSaveVoice").addEventListener("click",async()=>{
@@ -943,7 +960,7 @@ document.querySelectorAll("#statDays button").forEach(b=>b.addEventListener("cli
 function renderSettings(){
   document.querySelectorAll("#roleSeg button").forEach(b=>b.classList.toggle("active",b.dataset.v===S.role));
   const st=D.status(),c=D.config(),row=(k,v)=>`<div><span>${k}</span><b>${esc(v)}</b></div>`,go=(k,v,pg)=>`<div><span>${k}</span><button class="btn sm" data-go="${pg}">${esc(v)} · изменить</button></div>`;
-  $("statusBox").innerHTML=!LIVE?row("Данные","демо-примеры в этом браузере"):[row("Данные","живые, из базы сервиса"),st?row("Последний прогон",fmtDate(st.last_run)):"",st?row("Режим воркера",st.mode==="live"?"боевой: одобренное уходит на площадки":"тренировочный: на площадки ничего не уходит"):"",go("Автопилот 4–5★",c.autopilot?"включён":"выключен","rules"),go("Сводка в Telegram",c.tg_mode==="summary"?"включена"+(st&&st.tg_group?", группа «"+st.tg_group+"»":""):"выключена","rules"),go("Обучение",c.learning?"идёт":"остановлено","know"),st?row("Ждут проверки",`отзывов ${st.waiting_reviews}, вопросов ${st.waiting_questions}`):"",st&&st.left_new?row("Ещё не написано черновиков",String(st.left_new)):"",st&&st.errors&&st.errors.length?row("Ошибки отправки",st.errors.join("; ")):""].join("");
+  $("statusBox").innerHTML=!LIVE?row("Данные","демо-примеры в этом браузере"):[row("Данные","живые, из базы сервиса"),st?row("Последний прогон",fmtDate(st.last_run)):"",st?row("Режим воркера",st.mode==="live"?"боевой: одобренное уходит на площадки":"тренировочный: на площадки ничего не уходит"):"",go("Автоответы",autoOn(c,5)&&autoOn(c,4)?"на 5★ и 4★":autoOn(c,5)?"только на 5★":autoOn(c,4)?"только на 4★":"выключены","rules"),go("Сводка в Telegram",c.tg_mode==="summary"?"включена"+(st&&st.tg_group?", группа «"+st.tg_group+"»":""):"выключена","rules"),go("Обучение",c.learning?"идёт":"остановлено","know"),st?row("Ждут проверки",`отзывов ${st.waiting_reviews}, вопросов ${st.waiting_questions}`):"",st&&st.left_new?row("Ещё не написано черновиков",String(st.left_new)):"",st&&st.errors&&st.errors.length?row("Ошибки отправки",st.errors.join("; ")):""].join("");
   $("statusBox").querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.go)));
   $("demoCard").hidden=LIVE||(GH_MODE&&!!dbase);
   $("accessCard").hidden=!(GH_MODE&&GHUSER);$("btnInvite").hidden=!isOwner();$("inviteNote").hidden=!isOwner();if(GHUSER)$("accessText").textContent="Вы вошли как «"+GHUSER.name+"». Ключ доступа хранится только в этом браузере.";
