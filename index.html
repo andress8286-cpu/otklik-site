@@ -471,7 +471,7 @@ function overlay(list,decs){
   if(!decs.length)return list;const m={};decs.forEach(d=>{m[d.id]=d;});
   return list.map(r=>{const d=m[r.id];if(!d||r.status==="sent"||r.status==="gone")return r;
     if(d.action==="send")return Object.assign({},r,{status:"approved",reply:d.text||r.reply,no_facts:0,reason:"одобрил: "+(d.by||"")});
-    if(d.action==="skip")return Object.assign({},r,{status:"skipped"});
+    /* решения «пропустить» больше нет: каждый отзыв и вопрос должен получить ответ; старые такие решения не учитываются */
     if(d.action==="manual")return Object.assign({},r,{status:"manual",reason:"возвращён на проверку: "+(d.by||"")});
     return r;});
 }
@@ -697,7 +697,7 @@ function card(r){
     body=`<div class="reply"><div class="lbl">${r.reply?"Черновик"+(r.reply_src?" · "+esc(r.reply_src):""):"Напишите ответ"}${r.reason?" · "+esc(r.reason):""}</div>
       <textarea data-id="${esc(r.id)}" id="ta-${esc(r.id)}" placeholder="Ответ покупателю…">${esc(draft)}</textarea>
       <div class="checks" id="chk-${esc(r.id)}">${checksHtml(chk)}</div>
-      <div class="actions"><button class="btn primary" data-act="send" data-id="${esc(r.id)}" ${chk.length?"disabled":""}>Отправить</button><button class="btn" data-act="regen" data-id="${esc(r.id)}">Переписать ИИ</button><button class="btn ghost" data-act="skip" data-id="${esc(r.id)}">Пропустить</button></div>${GH_MODE?`<div class="rq" id="rq-${esc(r.id)}" hidden><input type="text" id="rqi-${esc(r.id)}" maxlength="300" placeholder="Что поправить? Например: короче, мягче. Можно не заполнять"><button class="btn sm primary" data-act="rqsend" data-id="${esc(r.id)}">Попросить ИИ</button></div>`:""}</div>`;
+      <div class="actions"><button class="btn primary" data-act="send" data-id="${esc(r.id)}" ${chk.length?"disabled":""}>Отправить</button><button class="btn" data-act="regen" data-id="${esc(r.id)}">Переписать ИИ</button></div>${GH_MODE?`<div class="rq" id="rq-${esc(r.id)}" hidden><input type="text" id="rqi-${esc(r.id)}" maxlength="300" placeholder="Что поправить? Например: короче, мягче. Можно не заполнять"><button class="btn sm primary" data-act="rqsend" data-id="${esc(r.id)}">Попросить ИИ</button></div>`:""}</div>`;
   }else{
     const lbl=r.status==="approved"?"Одобрено. Уйдёт на площадку при следующем прогоне":(r.sent_by==="auto"?"Ответил сам":"Отправлено")+(r.sent?" · "+fmtDate(r.sent):"");
     body=`<div class="reply"><div class="lbl">${esc(lbl)}${r.err?' · <span class="chip bad">ошибка отправки</span>':""}</div><div class="body">${esc(r.reply||"")}</div>
@@ -718,7 +718,7 @@ async function decide(r,action,text){
     if(action==="send"){
       if((x.reply||"").trim()!==text.trim()||x.no_facts)S.demo.edits.unshift({id:newId("e"),review_id:x.id,kind:x.kind,stars:x.stars,product:x.product,art:x.art,review_text:x.text,was:x.reply||"",final:text,ts:new Date().toISOString(),learned:0});
       x.status="sent";x.reply=text;x.no_facts=0;x.sent=new Date().toISOString();x.sent_by="manual";
-    }else if(action==="skip"){x.status="skipped";}else{x.status="manual";}
+    }else{x.status="manual";}
     save();
   }
 }
@@ -730,7 +730,7 @@ async function act(a,id,btn){
       const chk=checkRules(text);if(chk.length){toast("Исправьте: "+chk.join(", "));return;}
       btn.disabled=true;await decide(r,"send",text);delete DRAFTS[id];
       toast(LIVE?"Одобрено. Уйдёт на площадку при следующем прогоне.":"Отправлено (демо).");
-    }else if(a==="skip"){btn.disabled=true;await decide(r,"skip","");delete DRAFTS[id];toast("Пропущено, ответа не будет.");}
+    }
     else if(a==="back"){btn.disabled=true;await decide(r,"manual","");toast("Возвращено на проверку.");}
     else if(a==="rqsend"){
       const inp=$("rqi-"+id),hint=inp?inp.value.trim():"";btn.disabled=true;
