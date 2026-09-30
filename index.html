@@ -112,6 +112,14 @@ nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 6px);background:var(--
 .filters::-webkit-scrollbar{display:none}
 .filters button{white-space:nowrap;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
 .filters button.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+/* магазины в фирменных цветах площадок: выбранный залит, остальные — светлый оттенок с цветными буквами */
+.filters button[data-v=kab1],.filters button[data-v=kab2],#statScope button[data-v=kab1],#statScope button[data-v=kab2]{background:var(--wb-soft);color:var(--wb);border-color:transparent;font-weight:600}
+.filters button[data-v=oz]{background:var(--ozon-soft);color:var(--ozon);border-color:transparent;font-weight:600}
+.filters button[data-v=kab1].active,.filters button[data-v=kab2].active,#statScope button[data-v=kab1].active,#statScope button[data-v=kab2].active{background:linear-gradient(135deg,#CB11AB,#7B2CBF);color:#fff;box-shadow:none}
+.filters button[data-v=oz].active{background:#005BFF;color:#fff;box-shadow:none}
+.dot.bad{background:var(--bad);box-shadow:0 0 0 4px var(--bad-soft)}
+.runs{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13px;align-items:baseline}
+.runs .ok{color:var(--good);font-weight:700}.runs .no{color:var(--bad);font-weight:700}
 .stars{color:var(--accent);letter-spacing:1px;font-size:14px}
 .stars .off{color:var(--line)}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
@@ -371,6 +379,7 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
       <p class="small muted">Владелец меняет правила и автопилот. Менеджер проверяет очередь и пополняет знания. Сами правила, автопилот и Telegram настраиваются во вкладке «Правила».</p>
     </div>
     <div class="card stack"><h2>Состояние сервиса</h2><div class="reasons" id="statusBox"></div></div>
+    <div class="card stack" id="runsCard" hidden><h2>Прогоны</h2><p class="small muted">Сбор идёт каждые 15 минут, отправка одобренного — каждые 3 минуты, когда есть что отправить. ✓ — прошло без ошибок, ✕ — был сбой.</p><div id="runsBox"></div></div>
     <div class="card stack">
       <h2>Как это работает</h2>
       <p class="small">Воркер на компьютере магазина раз в полчаса забирает новые отзывы и вопросы, пишет черновики и выкладывает их сюда. Вы проверяете и нажимаете «Отправить». При следующем прогоне ответ уходит на площадку. Отзывы Ozon по API недоступны, с Ozon приходят только вопросы.</p>
@@ -420,6 +429,24 @@ function ask(key,msg){const t=Date.now();if(ARM[key]&&t-ARM[key]<7000){delete AR
 const ERR_RU={invalid_argument:"база отклонила запись",quota_exceeded:"база переполнена",resource_exhausted:"слишком много запросов, подождите минуту",unavailable:"база временно недоступна",revoked:"доступ к базе отозван, обновите страницу",not_granted:"доступ к базе не выдан этой странице",not_found:"запись не найдена",no_db:"база не подключена",gh_auth:"ключ доступа не подходит или отозван",gh_notfound:"данные магазина не найдены, проверьте ключ доступа",gh_readonly:"ключ доступа только для чтения, попросите у владельца ключ с правом записи",gh_limit:"GitHub просит подождать: слишком много запросов",gh_conflict:"одновременная правка, попробуйте ещё раз",gh_http:"GitHub временно недоступен",gh_net:"нет связи с интернетом",gh_unsupported:"действие недоступно",gh_notowner:"правила меняет только владелец со своим ключом"};
 const errText=e=>(e&&e.code&&(ERR_RU[e.code]||e.code))||"неизвестная ошибка";
 function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),3200);}
+/* здоровье сервиса: последний сбор со сбоем или прогонов не было дольше 40 минут (обычный интервал — 15) */
+function runHealth(st){
+  if(!st)return {bad:false};
+  const runs=Array.isArray(st.runs)?st.runs:[],last=runs.find(x=>x.kind==="сбор");
+  const mins=Math.floor((Date.now()-new Date(st.last_run))/6e4);
+  if(!isNaN(mins)&&mins>40)return {bad:true,text:"Сервис не запускался "+(mins<120?mins+" мин":Math.floor(mins/60)+" ч")+" — проверьте, включён ли компьютер"};
+  if(last&&!last.ok)return {bad:true,text:"Сбой прогона "+fmtDate(last.at)+" — подробности в настройках"};
+  return {bad:false};
+}
+function runsHtml(st){
+  const runs=st&&Array.isArray(st.runs)?st.runs:[];
+  if(!runs.length)return '<p class="small muted">Журнал появится после ближайшего прогона.</p>';
+  return '<div class="runs">'+runs.map(x=>{
+    const what=x.kind==="сбор"?`новых ${x.collected||0}`+(x.moved?`, из карантина в работу ${x.moved}`:"")+(x.quarantine!=null?`, в карантине ${x.quarantine}`:"")
+      :x.kind==="отправка"?`отправлено ${x.sent||0}`:`написано ${x.written||0}, отправлено ${x.sent||0}`;
+    return `<span class="${x.ok?"ok":"no"}">${x.ok?"✓":"✕"}</span><span>${fmtDate(x.at)} · ${esc(x.kind)}: ${what}${x.errors&&x.errors.length?`<br><span class="small" style="color:var(--bad)">${esc(x.errors.join("; "))}</span>`:""}</span>`;
+  }).join("")+"</div>";
+}
 function plural(n,a,b,c){n=Math.abs(n)%100;const k=n%10;return n>10&&n<20?c:k===1?a:k>=2&&k<=4?b:c;}
 /* срок WB: после первого ответа покупателя в чате у продавца 3 дня, потом отзыв 1–3★ публикуется */
 function deadlineChip(r){
@@ -685,8 +712,9 @@ function renderTop(){
   if(dbError){dot.className="dot";tx.textContent="Нет связи с базой: "+dbError;return;}
   if(!LIVE){dot.className="dot";tx.textContent=dbase?(GH_MODE?"Загружаю данные…":"Демо: база пока пуста"):"Демо-режим";return;}
   if(!st){dot.className="dot";tx.textContent="Данные живые";return;}
-  dot.className="dot"+(st.mode==="live"?" on":"");
-  tx.textContent=(st.mode==="live"?"Боевой режим":"Тренировочный режим")+" · прогон "+fmtDate(st.last_run)+(st.left_new?" · ещё пишутся: "+st.left_new:"");
+  const h=runHealth(st);
+  dot.className="dot"+(h.bad?" bad":st.mode==="live"?" on":"");
+  tx.textContent=(h.bad?h.text:(st.mode==="live"?"Боевой режим":"Тренировочный режим")+" · прогон "+fmtDate(st.last_run))+(st.left_new?" · ещё пишутся: "+st.left_new:"");
 }
 
 /* ================= ОТЗЫВЫ / ВОПРОСЫ ================= */
@@ -748,7 +776,9 @@ function card(r){
   let body;
   if(r.status==="quarantine"){
     const since=r.pinged||r.created,days=Math.max(0,Math.floor((Date.now()-new Date(since))/864e5));
-    body=`<div class="reply"><div class="lbl">${r.pinged?"Написали покупателю в чат "+fmtDate(r.pinged):"Покупателю ещё не написали"} · ждём ответа ${days?days+" "+plural(days,"день","дня","дней"):"меньше суток"}</div></div>`;
+    const out=Array.isArray(r.chat_out)?r.chat_out:[];
+    const sent=out.length?out.map(m=>`<div class="small">${fmtDate(m.at)} — ${m.wb?"WB отправил шаблон":"мы написали"}: «${esc(String(m.text||"").length>90?String(m.text).slice(0,90)+"…":m.text||"")}»</div>`).join(""):"";
+    body=`<div class="reply"><div class="lbl">${out.length||r.pinged?"Написали покупателю в чат":"Покупателю ещё не написали"} · ждём ответа ${days?days+" "+plural(days,"день","дня","дней"):"меньше суток"}</div>${sent?`<div class="chat">${sent}</div>`:(r.pinged?`<div class="small muted">${fmtDate(r.pinged)}</div>`:"")}</div>`;
     return `<article class="rev s-quar">${head}${body}</article>`;
   }
   if(waitSt){
@@ -1054,6 +1084,7 @@ function renderSettings(){
   document.querySelectorAll("#roleSeg button").forEach(b=>b.classList.toggle("active",b.dataset.v===S.role));
   const st=D.status(),c=D.config(),row=(k,v)=>`<div><span>${k}</span><b>${esc(v)}</b></div>`,go=(k,v,pg)=>`<div><span>${k}</span><button class="btn sm" data-go="${pg}">${esc(v)} · изменить</button></div>`;
   $("statusBox").innerHTML=!LIVE?row("Данные","демо-примеры в этом браузере"):[row("Данные","живые, из базы сервиса"),st?row("Последний прогон",fmtDate(st.last_run)):"",st?row("Режим воркера",st.mode==="live"?"боевой: одобренное уходит на площадки":"тренировочный: на площадки ничего не уходит"):"",go("Автоответы",autoOn(c,5)&&autoOn(c,4)?"на 5★ и 4★":autoOn(c,5)?"только на 5★":autoOn(c,4)?"только на 4★":"выключены","rules"),go("Сводка в Telegram",c.tg_mode==="summary"?"включена"+(st&&st.tg_group?", группа «"+st.tg_group+"»":""):"выключена","rules"),go("Обучение",c.learning?"идёт":"остановлено","know"),st?row("Ждут проверки",`отзывов ${st.waiting_reviews}, вопросов ${st.waiting_questions}`):"",st&&st.left_new?row("Ещё не написано черновиков",String(st.left_new)):"",st&&st.errors&&st.errors.length?row("Ошибки отправки",st.errors.join("; ")):""].join("");
+  $("runsCard").hidden=!(LIVE&&st);if(LIVE&&st)$("runsBox").innerHTML=runsHtml(st);
   $("statusBox").querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.go)));
   $("demoCard").hidden=LIVE||(GH_MODE&&!!dbase);
   if(GH_MODE&&dbase){$("roleSeg").hidden=true;$("roleText").hidden=false;$("roleText").innerHTML=GHOWNER?"Вы вошли с <b>ключом владельца</b>.":"Вы вошли с <b>ключом менеджера</b>.";}
