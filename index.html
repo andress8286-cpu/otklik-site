@@ -799,7 +799,7 @@ function card(r){
   if(r.status==="quarantine"){
     const chk=checkRules(draft);
     const lines=chatLines(r);
-    const chat=(r.chat_open||lines.indexOf("Сообщений в чате пока нет")<0)?`<details class="chatopen"><summary>Открыть чат</summary><div class="chat">${lines}</div><textarea id="chat-${esc(r.id)}" placeholder="Написать покупателю в этот чат…"></textarea><div class="actions"><button class="btn" data-act="chatsend" data-id="${esc(r.id)}">Отправить в чат</button></div><p class="small muted">Само сообщение не уходит. Кнопка отправляет только то, что вы написали.</p></details>`
+    const chat=(r.chat_open||lines.indexOf("Сообщений в чате пока нет")<0)?`<details class="chatopen"><summary>Открыть чат</summary><div class="chat">${lines}</div><textarea id="chat-${esc(r.id)}" placeholder="Текст или один пробел, как в кабинете"></textarea><div class="actions"><button class="btn" data-act="chatsend" data-id="${esc(r.id)}">Отправить в чат</button></div><p class="small muted">Пробел тоже уходит. Само ничего не отправляется, только по этой кнопке.</p></details>`
       :`<div class="reply"><div class="lbl">Чата в списке WB ещё нет. Сообщение туда само не отправляется.</div></div>`;
     body=`<div class="reply"><div class="lbl">${r.reply?"Ответ на карточку"+(r.reply_src?" · "+esc(r.reply_src):""):"Ответ на карточку ещё пишется"}${r.reason?" · "+esc(r.reason):""}</div>
       <textarea data-id="${esc(r.id)}" id="ta-${esc(r.id)}" placeholder="Публичный ответ на отзыв…">${esc(draft)}</textarea>
@@ -852,12 +852,16 @@ async function act(a,id,btn){
       if(ta){ta.value=t;DRAFTS[id]=t;paintChecks(id,t);}btn.textContent="Другой вариант · "+(ALT[id]+1)+"/"+v.length;return;
     }
     else if(a==="chatsend"){
-      const box=$("chat-"+id), text=box?box.value.trim():"";
-      const chk=checkRules(text);
-      if(text.length<2){toast("Напишите сообщение для чата.");return;}
-      if(chk.length){toast("В чат так нельзя: "+chk.join(", "));return;}
+      const box=$("chat-"+id), raw=box?box.value:"";
+      const spaceOnly=raw.length>0&&raw.trim()==="";
+      const text=spaceOnly?" ":raw.trim();
+      if(!spaceOnly){
+        const chk=checkRules(text);
+        if(text.length<2){toast("Напишите сообщение для чата или один пробел.");return;}
+        if(chk.length){toast("В чат так нельзя: "+chk.join(", "));return;}
+      }
       btn.disabled=true;await decide(r,"chatsend",text);
-      toast(LIVE?"Сообщение уйдёт в чат при следующем прогоне. Само туда ничего не пишется.":"В демо чат не отправляется.");
+      toast(LIVE?(spaceOnly?"Пробел уйдёт в чат при следующем прогоне.":"Сообщение уйдёт в чат при следующем прогоне."):"В демо чат не отправляется.");
     }
     else if(a==="regen"){await regen(r,ta,btn);return;}
   }catch(e){toast("Не получилось сохранить: "+errText(e)+". Попробуйте ещё раз.");if(btn)btn.disabled=false;return;}
