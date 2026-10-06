@@ -217,8 +217,10 @@ nav.tabs{grid-template-columns:repeat(5,1fr)}
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .filters button{min-height:36px}
 details.facts{background:var(--surface2);border-radius:10px;padding:8px 12px;font-size:13px}
-details.facts summary{cursor:pointer;color:var(--primary);font-weight:500}
+details.facts summary,details.chatopen summary{cursor:pointer;color:var(--primary);font-weight:600}
 details.facts div{margin-top:6px;color:var(--muted)}
+details.chatopen{background:var(--surface2);border-radius:10px;padding:8px 12px}
+details.chatopen .chat{display:flex;flex-direction:column;gap:8px;margin:8px 0}
 .skill-item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .skill-item.off{opacity:.6}
 .skill-item summary{cursor:pointer;display:flex;gap:8px;align-items:center;flex-wrap:wrap;list-style:none}
@@ -780,6 +782,11 @@ function pubChip(r){
   if(r.published===0||r.published===false)return '<span class="chip bad" title="На карточке товара этого отзыва ещё нет">не опубликован</span>';
   return '<span class="chip manual">публикация ещё не проверена</span>';
 }
+function chatLines(r){
+  const src=Array.isArray(r.chat)&&r.chat.length?r.chat:(Array.isArray(r.chat_out)?r.chat_out.map(m=>({at:m.at,who:m.wb?"wb":"мы",text:m.text||""})) : []);
+  if(!src.length)return '<div class="small muted">Сообщений в чате пока нет.</div>';
+  return src.map(m=>`<div class="small"><b>${m.who==="покупатель"?"Покупатель":m.who==="wb"?"Сообщение WB":"Магазин"}</b> · ${fmtDate(m.at)}<div>${esc(m.text||"")}</div></div>`).join("");
+}
 function card(r){
   const cab=cabOf(r.kab),isQ=r.kind==="question",waitSt=WAIT_ST.includes(r.status);
   const draft=DRAFTS[r.id]!=null?DRAFTS[r.id]:(r.reply||"");
@@ -791,10 +798,9 @@ function card(r){
   let body;
   if(r.status==="quarantine"){
     const chk=checkRules(draft);
-    const out=Array.isArray(r.chat_out)?r.chat_out:[];
-    const sent=out.length?out.map(m=>`<div class="small">${fmtDate(m.at)} — ${m.wb?"WB написал шаблон":"мы написали"}: «${esc(String(m.text||"").length>90?String(m.text).slice(0,90)+"…":m.text||"")}»</div>`).join(""):"";
-    const chat=r.chat_open?`<div class="reply"><div class="lbl">Чат открыт. Автоответа нет — сообщение уйдёт только по кнопке.</div>${sent?`<div class="chat">${sent}</div>`:""}<textarea id="chat-${esc(r.id)}" placeholder="Сообщение в личный чат, не на карточку…"></textarea><div class="actions"><button class="btn" data-act="chatsend" data-id="${esc(r.id)}">Отправить в чат</button></div></div>`
-      :`<div class="reply"><div class="lbl">Чат ещё не открыт. Его создаёт WB, когда пишет покупателю по этому отзыву. Мы в чат сами ничего не отправляем.</div>${sent?`<div class="chat">${sent}</div>`:""}</div>`;
+    const lines=chatLines(r);
+    const chat=(r.chat_open||lines.indexOf("Сообщений в чате пока нет")<0)?`<details class="chatopen"><summary>Открыть чат</summary><div class="chat">${lines}</div><textarea id="chat-${esc(r.id)}" placeholder="Написать покупателю в этот чат…"></textarea><div class="actions"><button class="btn" data-act="chatsend" data-id="${esc(r.id)}">Отправить в чат</button></div><p class="small muted">Само сообщение не уходит. Кнопка отправляет только то, что вы написали.</p></details>`
+      :`<div class="reply"><div class="lbl">Чата в списке WB ещё нет. Сообщение туда само не отправляется.</div></div>`;
     body=`<div class="reply"><div class="lbl">${r.reply?"Ответ на карточку"+(r.reply_src?" · "+esc(r.reply_src):""):"Ответ на карточку ещё пишется"}${r.reason?" · "+esc(r.reason):""}</div>
       <textarea data-id="${esc(r.id)}" id="ta-${esc(r.id)}" placeholder="Публичный ответ на отзыв…">${esc(draft)}</textarea>
       <div class="checks" id="chk-${esc(r.id)}">${checksHtml(chk)}</div>
