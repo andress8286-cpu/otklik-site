@@ -101,8 +101,9 @@ nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 6px);background:var(--
 .btn.sm{padding:6px 10px;min-height:32px;font-size:13px}
 .btn[disabled]{opacity:.5;cursor:default}
 .chip{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;line-height:18px;border:1px solid transparent}
-.chip.wb{background:var(--wb-soft);color:var(--wb)}
-.chip.ozon{background:var(--ozon-soft);color:var(--ozon)}
+/* значок магазина — одинаковый на карточке и на кнопках выбора, отличается только размер; фирменные цвета в обеих темах */
+.chip.wb{background:linear-gradient(135deg,#CB11AB,#481173);color:#fff}
+.chip.ozon{background:#005BFF;color:#fff}
 .chip.auto{background:var(--good-soft);color:var(--good)}
 .chip.review{background:var(--warn-soft);color:var(--warn)}
 .chip.manual{background:var(--surface2);color:var(--muted)}
@@ -112,11 +113,12 @@ nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 6px);background:var(--
 .filters::-webkit-scrollbar{display:none}
 .filters button{white-space:nowrap;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
 .filters button.active{background:var(--text);color:var(--bg);border-color:var(--text)}
-/* магазины в фирменных цветах площадок: выбранный залит, остальные — светлый оттенок с цветными буквами */
-.filters button[data-v=kab1],.filters button[data-v=kab2],#statScope button[data-v=kab1],#statScope button[data-v=kab2]{background:var(--wb-soft);color:var(--wb);border-color:transparent;font-weight:600}
-.filters button[data-v=oz]{background:var(--ozon-soft);color:var(--ozon);border-color:transparent;font-weight:600}
-.filters button[data-v=kab1].active,.filters button[data-v=kab2].active,#statScope button[data-v=kab1].active,#statScope button[data-v=kab2].active{background:linear-gradient(135deg,#CB11AB,#7B2CBF);color:#fff;box-shadow:none}
-.filters button[data-v=oz].active{background:#005BFF;color:#fff;box-shadow:none}
+/* кнопки магазинов = тот же значок, что на карточке, только крупнее: невыбранные бледнее, выбранная яркая с обводкой */
+.filters{padding:3px 3px 6px}
+.filters button[data-v=kab1],.filters button[data-v=kab2],#statScope button[data-v=kab1],#statScope button[data-v=kab2]{background:linear-gradient(135deg,#CB11AB,#481173);color:#fff;border-color:transparent;font-weight:600;opacity:.5}
+.filters button[data-v=oz]{background:#005BFF;color:#fff;border-color:transparent;font-weight:600;opacity:.5}
+.filters button[data-v=kab1].active,.filters button[data-v=kab2].active,#statScope button[data-v=kab1].active,#statScope button[data-v=kab2].active{opacity:1;box-shadow:0 0 0 2px var(--surface),0 0 0 4px #CB11AB}
+.filters button[data-v=oz].active{opacity:1;box-shadow:0 0 0 2px var(--surface),0 0 0 4px #005BFF}
 .dot.bad{background:var(--bad);box-shadow:0 0 0 4px var(--bad-soft)}
 .runs{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13px;align-items:baseline}
 .runs .ok{color:var(--good);font-weight:700}.runs .no{color:var(--bad);font-weight:700}
@@ -205,7 +207,7 @@ label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mu
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
 /* v2 */
-html,body{max-width:100%;overflow-x:hidden}
+html,body{max-width:100%;overflow-x:clip}          /* clip, а не hidden: hidden делает body прокручиваемым блоком, и закреплённые шапка и меню уезжают */
 main,.stack,.card,.rev,.reply,.rule{min-width:0}
 .txt,.reply .body,.skill-item .body,.ex,.prod,.pc{overflow-wrap:anywhere}
 nav.tabs{grid-template-columns:repeat(5,1fr)}
@@ -263,10 +265,17 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
 .pilot #runText{min-width:0}
 .prod{display:flex;align-items:center;gap:10px}.prod .pimg{width:44px;height:58px;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:var(--surface2);flex:none}.prod .ptx{min-width:0}
 @media (max-width:640px){
-  header.top{gap:8px;padding-block:8px}
-  .logo{margin-right:auto}
-  .pilot{order:9;flex:1 0 100%;margin-left:0;min-width:0;font-size:12px}
-  .pilot #runText{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  header.top{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"logo theme gear" "status status status";align-items:center;column-gap:8px;row-gap:6px;padding-block:8px}
+  .logo{grid-area:logo;margin:0;min-width:0}
+  #btnTheme{grid-area:theme}
+  #btnSettings{grid-area:gear}
+  .pilot{grid-area:status;order:0;flex:none;width:auto;max-width:100%;margin:0;min-width:0;font-size:12px}
+  .pilot #runText{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;min-width:0}
+  .gear{flex:none}
+  nav.tabs button{font-size:10px;min-width:0;padding:6px 0 7px}
+  nav.tabs button svg{width:18px;height:18px}
+  .seg.wide{display:flex;flex-wrap:wrap;overflow:visible}
+  .seg.wide button{flex:1 1 42%;font-size:12px;line-height:1.25;white-space:normal}
 }
 </style>
 </head>
@@ -746,7 +755,7 @@ function renderList(page){
     if(fresh.length)html+=`<div class="sect"><h2>Черновик ещё не написан</h2><span class="small muted">сервис напишет при ближайшем прогоне; можно ответить самому или нажать «Переписать ИИ»</span></div>`+fresh.map(r=>card(r)).join("");
     if(need.length)html+=`<div class="sect"><h2>Нужен ваш ответ</h2><span class="small muted">${isQ?"нет данных в карточке или сложный случай":"правило «вручную» или сложный случай"}</span></div>`+need.map(r=>card(r)).join("");
   }else if(tab==="quar"){
-    html+=`<div class="note">Новые отзывы 1–4★ из магазина с чатом WB. Покупателю написали в чате, отзыв ждёт его ответа. Здесь с отзывом ничего сделать нельзя: как только покупатель ответит, отзыв сам перейдёт в «Ждут проверки».</div>`;
+    html+=`<div class="note">Карантин — только Каб 1, отзывы 1–4★. На карточке видно, опубликован отзыв или ещё нет. Публичный ответ пишется вариантами, как обычно, и уходит только по кнопке «Отправить». Чат WB открывается сам: в него ничего не пишется, пока вы сами не нажмёте «Отправить в чат».</div>`;
     html+=quar.length?quar.map(r=>card(r)).join(""):`<div class="empty">В карантине пусто.</div>`;
   }else{
     html+=done.length?done.map(r=>card(r)).join(""):`<div class="empty">Пока ничего не отправлено.</div>`;
@@ -765,20 +774,31 @@ function factsHtml(r){
   if(!chars&&!know)return "";
   return `<details class="facts"><summary>Что известно о товаре</summary>${chars?`<div class="small"><b>Характеристики:</b> ${esc(chars)}</div>`:""}${know?`<div class="small" style="white-space:pre-line"><b>Знания магазина:</b>\n${esc(know)}</div>`:""}</details>`;
 }
+function pubChip(r){
+  if(r.kab!=="kab1"||r.kind==="question"||!(r.stars>=1&&r.stars<=4))return "";
+  if(r.published===1||r.published===true)return '<span class="chip auto" title="Отзыв уже виден покупателям на карточке">опубликован</span>';
+  if(r.published===0||r.published===false)return '<span class="chip bad" title="На карточке товара этого отзыва ещё нет">не опубликован</span>';
+  return '<span class="chip manual">публикация ещё не проверена</span>';
+}
 function card(r){
   const cab=cabOf(r.kab),isQ=r.kind==="question",waitSt=WAIT_ST.includes(r.status);
   const draft=DRAFTS[r.id]!=null?DRAFTS[r.id]:(r.reply||"");
-  const head=`<div class="head"><span class="chip ${cab.platform}">${esc(cab.label)}</span>${isQ?'<b>Вопрос</b>':starsHtml(r.stars)}<span class="who">${esc(r.user||"")}</span><span class="small muted">${fmtDate(r.created)}</span>${r.photo?'<span class="chip manual">с фото</span>':""}${r.top3?'<span class="chip bad" title="Отзыв виден в первой тройке ленты карточки">топ-3 ленты</span>':""}${r.no_facts&&waitSt?'<span class="chip bad">нет данных в карточке</span>':""}${waitSt&&(r.rewrite||L.requests.some(x=>x.id===r.id))?'<span class="chip manual">ИИ переписывает</span>':""}${waitSt?deadlineChip(r):""}</div>
+  const head=`<div class="head"><span class="chip ${cab.platform}">${esc(cab.label)}</span>${isQ?'<b>Вопрос</b>':starsHtml(r.stars)}<span class="who">${esc(r.user||"")}</span><span class="small muted">${fmtDate(r.created)}</span>${pubChip(r)}${r.photo?'<span class="chip manual">с фото</span>':""}${r.top3?'<span class="chip bad" title="Отзыв виден в первой тройке ленты карточки">топ-3 ленты</span>':""}${r.no_facts&&waitSt?'<span class="chip bad">нет данных в карточке</span>':""}${waitSt&&(r.rewrite||L.requests.some(x=>x.id===r.id))?'<span class="chip manual">ИИ переписывает</span>':""}${waitSt?deadlineChip(r):""}</div>
     <div class="prod">${/^https:\/\//.test(r.img||"")?`<img class="pimg" src="${esc(r.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">`:""}<div class="ptx"><b>${esc(r.art||"")}</b>${r.art?" · ":""}${esc(r.product||"")}${r.category?" · "+esc(r.category):""}</div></div>
     ${r.text?`<div class="txt">${esc(r.text)}</div>`:'<div class="txt muted">Без текста</div>'}
     ${(r.pros||r.cons)?`<div class="pc">${r.pros?`<span class="plus"><b>Плюсы:</b> ${esc(r.pros)}</span>`:""}${r.cons?`<span class="minus"><b>Минусы:</b> ${esc(r.cons)}</span>`:""}</div>`:""}
     ${isQ?factsHtml(r):""}${r.chat_reply?`<div class="chat"><b>Покупатель ответил в чате</b>${r.chat_reply_at?" · "+fmtDate(r.chat_reply_at):""}\n${esc(r.chat_reply)}</div>`:""}`;
   let body;
   if(r.status==="quarantine"){
-    const since=r.pinged||r.created,days=Math.max(0,Math.floor((Date.now()-new Date(since))/864e5));
+    const chk=checkRules(draft);
     const out=Array.isArray(r.chat_out)?r.chat_out:[];
-    const sent=out.length?out.map(m=>`<div class="small">${fmtDate(m.at)} — ${m.wb?"WB отправил шаблон":"мы написали"}: «${esc(String(m.text||"").length>90?String(m.text).slice(0,90)+"…":m.text||"")}»</div>`).join(""):"";
-    body=`<div class="reply"><div class="lbl">${out.length||r.pinged?"Написали покупателю в чат":"Покупателю ещё не написали"} · ждём ответа ${days?days+" "+plural(days,"день","дня","дней"):"меньше суток"}</div>${sent?`<div class="chat">${sent}</div>`:(r.pinged?`<div class="small muted">${fmtDate(r.pinged)}</div>`:"")}</div>`;
+    const sent=out.length?out.map(m=>`<div class="small">${fmtDate(m.at)} — ${m.wb?"WB написал шаблон":"мы написали"}: «${esc(String(m.text||"").length>90?String(m.text).slice(0,90)+"…":m.text||"")}»</div>`).join(""):"";
+    const chat=r.chat_open?`<div class="reply"><div class="lbl">Чат открыт. Автоответа нет — сообщение уйдёт только по кнопке.</div>${sent?`<div class="chat">${sent}</div>`:""}<textarea id="chat-${esc(r.id)}" placeholder="Сообщение в личный чат, не на карточку…"></textarea><div class="actions"><button class="btn" data-act="chatsend" data-id="${esc(r.id)}">Отправить в чат</button></div></div>`
+      :`<div class="reply"><div class="lbl">Чат ещё не открыт. Его создаёт WB, когда пишет покупателю по этому отзыву. Мы в чат сами ничего не отправляем.</div>${sent?`<div class="chat">${sent}</div>`:""}</div>`;
+    body=`<div class="reply"><div class="lbl">${r.reply?"Ответ на карточку"+(r.reply_src?" · "+esc(r.reply_src):""):"Ответ на карточку ещё пишется"}${r.reason?" · "+esc(r.reason):""}</div>
+      <textarea data-id="${esc(r.id)}" id="ta-${esc(r.id)}" placeholder="Публичный ответ на отзыв…">${esc(draft)}</textarea>
+      <div class="checks" id="chk-${esc(r.id)}">${checksHtml(chk)}</div>
+      <div class="actions"><button class="btn primary" data-act="send" data-id="${esc(r.id)}" ${chk.length?"disabled":""}>Отправить</button>${variantsOf(r).length>1?`<button class="btn" data-act="alt" data-id="${esc(r.id)}">Другой вариант · ${((ALT[r.id]||0)%variantsOf(r).length)+1}/${variantsOf(r).length}</button>`:""}<button class="btn" data-act="regen" data-id="${esc(r.id)}">Переписать ИИ</button></div></div>${chat}`;
     return `<article class="rev s-quar">${head}${body}</article>`;
   }
   if(waitSt){
@@ -824,6 +844,14 @@ async function act(a,id,btn){
     else if(a==="alt"){          // запасные варианты написаны заранее — переключение мгновенное, без ожидания ИИ
       const v=variantsOf(r);if(v.length<2)return;ALT[id]=((ALT[id]||0)+1)%v.length;const t=v[ALT[id]];
       if(ta){ta.value=t;DRAFTS[id]=t;paintChecks(id,t);}btn.textContent="Другой вариант · "+(ALT[id]+1)+"/"+v.length;return;
+    }
+    else if(a==="chatsend"){
+      const box=$("chat-"+id), text=box?box.value.trim():"";
+      const chk=checkRules(text);
+      if(text.length<2){toast("Напишите сообщение для чата.");return;}
+      if(chk.length){toast("В чат так нельзя: "+chk.join(", "));return;}
+      btn.disabled=true;await decide(r,"chatsend",text);
+      toast(LIVE?"Сообщение уйдёт в чат при следующем прогоне. Само туда ничего не пишется.":"В демо чат не отправляется.");
     }
     else if(a==="regen"){await regen(r,ta,btn);return;}
   }catch(e){toast("Не получилось сохранить: "+errText(e)+". Попробуйте ещё раз.");if(btn)btn.disabled=false;return;}
