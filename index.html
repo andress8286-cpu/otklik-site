@@ -757,7 +757,7 @@ function renderList(page){
     if(fresh.length)html+=`<div class="sect"><h2>Черновик ещё не написан</h2><span class="small muted">сервис напишет при ближайшем прогоне; можно ответить самому или нажать «Переписать ИИ»</span></div>`+fresh.map(r=>card(r)).join("");
     if(need.length)html+=`<div class="sect"><h2>Нужен ваш ответ</h2><span class="small muted">${isQ?"нет данных в карточке или сложный случай":"правило «вручную» или сложный случай"}</span></div>`+need.map(r=>card(r)).join("");
   }else if(tab==="quar"){
-    html+=`<div class="note">Карантин — только Каб 1, отзывы 1–4★. На карточке видно, опубликован отзыв или ещё нет. Публичный ответ пишется вариантами, как обычно, и уходит только по кнопке «Отправить». Чат WB открывается сам: в него ничего не пишется, пока вы сами не нажмёте «Отправить в чат».</div>`;
+    html+=`<div class="note">Карантин — только Каб 1, отзывы 1–4★. На карточке видно, опубликован отзыв или ещё нет. Отправить ответ отсюда нельзя. Чат можно открыть и прочитать, ответить в личный чат нельзя.</div>`;
     html+=quar.length?quar.map(r=>card(r)).join(""):`<div class="empty">В карантине пусто.</div>`;
   }else{
     html+=done.length?done.map(r=>card(r)).join(""):`<div class="empty">Пока ничего не отправлено.</div>`;
@@ -797,14 +797,10 @@ function card(r){
     ${isQ?factsHtml(r):""}${r.chat_reply?`<div class="chat"><b>Покупатель ответил в чате</b>${r.chat_reply_at?" · "+fmtDate(r.chat_reply_at):""}\n${esc(r.chat_reply)}</div>`:""}`;
   let body;
   if(r.status==="quarantine"){
-    const chk=checkRules(draft);
     const lines=chatLines(r);
-    const chat=(r.chat_open||lines.indexOf("Сообщений в чате пока нет")<0)?`<details class="chatopen"><summary>Открыть чат</summary><div class="chat">${lines}</div><textarea id="chat-${esc(r.id)}" placeholder="Текст или один пробел, как в кабинете"></textarea><div class="actions"><button class="btn" data-act="chatsend" data-id="${esc(r.id)}">Отправить в чат</button></div><p class="small muted">Пробел тоже уходит. Само ничего не отправляется, только по этой кнопке.</p></details>`
-      :`<div class="reply"><div class="lbl">Чата в списке WB ещё нет. Сообщение туда само не отправляется.</div></div>`;
-    body=`<div class="reply"><div class="lbl">${r.reply?"Ответ на карточку"+(r.reply_src?" · "+esc(r.reply_src):""):"Ответ на карточку ещё пишется"}${r.reason?" · "+esc(r.reason):""}</div>
-      <textarea data-id="${esc(r.id)}" id="ta-${esc(r.id)}" placeholder="Публичный ответ на отзыв…">${esc(draft)}</textarea>
-      <div class="checks" id="chk-${esc(r.id)}">${checksHtml(chk)}</div>
-      <div class="actions"><button class="btn primary" data-act="send" data-id="${esc(r.id)}" ${chk.length?"disabled":""}>Отправить</button>${variantsOf(r).length>1?`<button class="btn" data-act="alt" data-id="${esc(r.id)}">Другой вариант · ${((ALT[r.id]||0)%variantsOf(r).length)+1}/${variantsOf(r).length}</button>`:""}<button class="btn" data-act="regen" data-id="${esc(r.id)}">Переписать ИИ</button></div></div>${chat}`;
+    const chat=`<details class="chatopen"><summary>Чат, только просмотр</summary><div class="chat">${lines}</div><p class="small muted">В личный чат ответить нельзя.</p></details>`;
+    body=`<div class="reply"><div class="lbl">Отправка из карантина закрыта${r.reason?" · "+esc(r.reason):""}</div>
+      <div class="body">${esc(r.reply||"Ответа на карточке нет.")}</div></div>${chat}`;
     return `<article class="rev s-quar">${head}${body}</article>`;
   }
   if(waitSt){
@@ -839,6 +835,7 @@ async function decide(r,action,text){
 }
 async function act(a,id,btn){
   const r=D.reviews().find(x=>x.id===id);if(!r)return;
+  if(r.status==="quarantine"&&(a==="send"||a==="chatsend")){toast("Из карантина отправка закрыта. Чат можно только смотреть.");return;}
   const ta=$("ta-"+id),text=ta?ta.value.trim():(r.reply||"");
   try{
     if(a==="send"){
