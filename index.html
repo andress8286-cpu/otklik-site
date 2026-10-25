@@ -943,7 +943,7 @@ function renderList(page){
   if(isQ&&tab==="quar")tab="wait";
   const all=D.reviews().filter(r=>r.kind===kind&&(cab==="all"||r.kab===cab));
   const sortKey=(S.sort&&S.sort[page])||"urgent";
-  const wait=all.filter(r=>WAIT_ST.includes(r.status)).sort(SORTS[sortKey]||urgency);
+  const wait=all.filter(r=>WAIT_ST.includes(r.status)&&!(r.kind==="review"&&r.stars===5&&r.status==="new")).sort(SORTS[sortKey]||urgency);          // 5★ пишет и отправляет сервис сам (Андрей 25.10)
   const doneDef=(a,b)=>String(b.sent||b.created).localeCompare(String(a.sent||a.created));
   const done=all.filter(r=>r.status==="approved"||r.status==="sent").sort(sortKey==="urgent"?doneDef:(SORTS[sortKey]||doneDef));
   const quar=all.filter(r=>r.status==="quarantine").sort((a,b)=>byDate(b,a));
