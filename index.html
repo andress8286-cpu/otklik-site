@@ -589,7 +589,7 @@ html.ab-big{overflow:hidden}
     <div class="card stack" id="runsCard" hidden><h2>Прогоны</h2><p class="small muted">Сбор идёт каждые 15 минут, отправка одобренного — каждые 3 минуты, когда есть что отправить. ✓ — прошло без ошибок, ✕ — был сбой.</p><div id="runsBox"></div></div>
     <div class="card stack">
       <h2>Как это работает</h2>
-      <p class="small">Воркер на компьютере магазина раз в полчаса забирает новые отзывы и вопросы, пишет черновики и выкладывает их сюда. Вы проверяете и нажимаете «Отправить». При следующем прогоне ответ уходит на площадку. Отзывы Ozon по API недоступны, с Ozon приходят только вопросы.</p>
+      <p class="small">Воркер на компьютере магазина раз в полчаса забирает новые отзывы и вопросы, пишет черновики и выкладывает их сюда. Вы проверяете и нажимаете «Отправить». При следующем прогоне ответ уходит на площадку. Отзывы и вопросы Ozon тоже приходят сюда.</p>
     </div>
     <div class="card stack" id="orCard" hidden><h2>Мгновенная «Переписать ИИ»</h2><p class="small muted">Кнопка «Переписать ИИ» отвечает за несколько секунд, если вставить сюда ключ OpenRouter (openrouter.ai → Keys). Ключ вставляет только владелец, один раз: он сохраняется в настройках магазина и сам начинает работать у всех сотрудников (в течение нескольких минут). Бесплатные модели: до 50 запросов в день, после разового пополнения счёта на 10 $ — до 1000. Без ключа кнопка оставляет заявку, и ответ переписывается при следующем прогоне.</p>
       <label class="f">Ключ OpenRouter<input type="password" id="orKey" name="otklik-or-key" autocomplete="new-password" data-lpignore="true" placeholder="sk-or-…"></label>
@@ -952,9 +952,8 @@ function renderList(page){
   let html=`<div class="stack">
     <div><h1>${isQ?"Вопросы покупателей":"Отзывы"}</h1><p class="muted small">${isQ?"Ответ строится только по карточке товара и разделу «Знания». Если данных нет, сервис не выдумывает, а ждёт вашего ответа и запоминает его.":"Сверху самое срочное: негатив в топ-3 ленты, затем низкие оценки. Ответ уходит на площадку только после вашей кнопки «Отправить»."}</p></div>
     <div class="seg wide" data-seg="tab"><button data-v="wait" class="${tab==="wait"?"active":""}">${isQ?"Ждут ответа":"Ждут проверки"} · ${wait.length}</button><button data-v="done" class="${tab==="done"?"active":""}">${isQ?"Отвечено":"Отправлено"} · ${done.length}</button>${isQ?"":`<button data-v="quar" class="${tab==="quar"?"active":""}">Карантин · ${quar.length}</button>`}</div>
-    ${isQ?"":'<div class="note">Отзывы Ozon сюда не приходят: Ozon отдаёт их по API только на подписке Premium Plus. С Ozon приходят вопросы, они во вкладке «Вопросы».</div>'}
     <label class="f sortbox">Сортировка<select data-sort="${page}">${Object.entries(SORT_LABEL).filter(([k])=>!(isQ&&k.startsWith("stars"))).map(([k,l])=>`<option value="${k}" ${sortKey===k?"selected":""}>${l}</option>`).join("")}</select></label>
-    <div class="filters" data-seg="cab"><button data-v="all" class="${cab==="all"?"active":""}">Все магазины</button>${CABS.filter(c=>!(kind==="review"&&c.id==="oz")).map(c=>`<button data-v="${c.id}" class="${cab===c.id?"active":""}">${c.label}</button>`).join("")}</div>`;
+    <div class="filters" data-seg="cab"><button data-v="all" class="${cab==="all"?"active":""}">Все магазины</button>${CABS.map(c=>`<button data-v="${c.id}" class="${cab===c.id?"active":""}">${c.label}</button>`).join("")}</div>`;
   if(tab==="wait"){
     if(!wait.length)html+=`<div class="empty">Здесь пусто. Новое появится после следующего прогона.</div>`;
     if(ready.length)html+=`<div class="sect"><h2>Черновик готов</h2><span class="small muted">проверьте и отправьте</span></div>`+ready.map(r=>card(r)).join("");
@@ -1303,7 +1302,7 @@ function renderStats(){
   document.querySelectorAll("#statScope button").forEach(b=>b.classList.toggle("active",b.dataset.v===scope));
   document.querySelectorAll("#statDays button").forEach(b=>b.classList.toggle("active",+b.dataset.v===days));
   const a=statDoc(scope,days),fmt=v=>v==null?"—":String(v).replace(".",",");
-  $("statNote").textContent=a.local?((LIVE||dbase)?"Пока считаю только по записям в очереди. Полная аналитика появится после ближайшего прогона воркера.":"Демо-данные."):"Отзывы Wildberries, включая уже отвеченные. Обновлено "+fmtDate(a.updated)+". Отзывы Ozon недоступны по API, поэтому здесь их нет.";
+  $("statNote").textContent=a.local?((LIVE||dbase)?"Пока считаю только по записям в очереди. Полная аналитика появится после ближайшего прогона воркера.":"Демо-данные."):"Отзывы Wildberries, включая уже отвеченные. Обновлено "+fmtDate(a.updated)+". Отзывы Ozon в аналитику пока не входят.";
   $("aRev").textContent=a.total;$("aAvg").textContent=fmt(a.avg);$("aNeg").textContent=a.neg;$("aNegSub").textContent=a.total?fmt(a.neg_share)+" % от всех":"—";
   const perDay=a.total/days;$("aRevSub").textContent=a.total?"≈ "+fmt(perDay>=10?Math.round(perDay):Math.round(perDay*10)/10)+" в день":"—";
   $("aAvgSub").textContent=a.prev_avg!=null?"было "+fmt(a.prev_avg):"—";$("aUn").textContent=a.unanswered||0;
