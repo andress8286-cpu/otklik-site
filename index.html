@@ -728,10 +728,15 @@ const D={
   config:()=>{const c=(LIVE||dbase)?(L.config||{}):S.demo.config;const out=Object.assign(clone(DEFAULT_CONFIG),c||{});out.rules=Object.assign(clone(DEFAULT_CONFIG.rules),(c&&c.rules)||{});return out;},
   status:()=>LIVE?L.status:null
 };
+/* как в ЛК WB: «Отправить автору» и «Отклонить вопрос» — вопрос отклоняется (на WB его не видно), текст получает только автор. На Ozon и ЯМ такого нет */
+var WB_DECLINE_TEXT="Вопрос отклонён";
+function wbQ(r){return r.kind==="question"&&(r.kab==="kab1"||r.kab==="kab2");}
+function visChip(r){return r.vis==="author"?'<span class="chip manual" title="Вопрос отклонён, ответ видит только автор">только автору</span>':r.vis==="decline"?'<span class="chip bad" title="Вопрос не показывается на WB">вопрос отклонён</span>':"";}
 function overlay(list,decs){
   if(!decs.length)return list;const m={};decs.forEach(d=>{m[d.id]=d;});
   return list.map(r=>{const d=m[r.id];if(!d||r.status==="sent"||r.status==="gone"||r.status==="quarantine")return r;
-    if(d.action==="send")return Object.assign({},r,{status:"approved",reply:d.text||r.reply,no_facts:0,reason:"одобрил: "+(d.by||"")});
+    if(d.action==="send")return Object.assign({},r,{status:"approved",reply:d.text||r.reply,no_facts:0,vis:d.to==="author"?"author":"",reason:(d.to==="author"?"только автору: ":"одобрил: ")+(d.by||"")});
+    if(d.action==="decline")return Object.assign({},r,{status:"approved",reply:WB_DECLINE_TEXT,no_facts:0,vis:"decline",reason:"отклонил: "+(d.by||"")});
     /* решения «пропустить» больше нет: каждый отзыв и вопрос должен получить ответ; старые такие решения не учитываются */
     if(d.action==="manual")return Object.assign({},r,{status:"manual",reason:"возвращён на проверку: "+(d.by||"")});
     return r;});
@@ -1014,28 +1019,31 @@ function card(r){
       <textarea data-id="${esc(r.id)}" id="ta-${esc(r.id)}" placeholder="Ответ покупателю…">${esc(draft)}</textarea>
       <div class="checks" id="chk-${esc(r.id)}">${checksHtml(chk)}</div>
       ${low?'<div class="small muted">Ответы на отзывы 1–4★ сейчас на площадку не уходят — так настроил владелец (Правила → «Отправлять ответы на 1–4★»).</div>':""}
-      <div class="actions"><button class="btn primary" data-act="send" data-id="${esc(r.id)}" ${low?'data-low="1" ':""}${chk.length||low?"disabled":""}>Отправить</button>${variantsOf(r).length>1?`<button class="btn" data-act="alt" data-id="${esc(r.id)}">Другой вариант · ${((ALT[r.id]||0)%variantsOf(r).length)+1}/${variantsOf(r).length}</button>`:""}<button class="btn" data-act="regen" data-id="${esc(r.id)}">Переписать ИИ</button></div></div>`;
+      <div class="actions"><button class="btn primary" data-act="send" data-id="${esc(r.id)}" ${low?'data-low="1" ':""}${chk.length||low?"disabled":""}>Отправить</button>${variantsOf(r).length>1?`<button class="btn" data-act="alt" data-id="${esc(r.id)}">Другой вариант · ${((ALT[r.id]||0)%variantsOf(r).length)+1}/${variantsOf(r).length}</button>`:""}<button class="btn" data-act="regen" data-id="${esc(r.id)}">Переписать ИИ</button></div>
+      ${wbQ(r)?`<div class="actions"><button class="btn" data-act="author" data-id="${esc(r.id)}" title="Вопрос уйдёт с сайта WB, ответ получит только автор" ${chk.length?"disabled":""}>Только автору</button><button class="btn ghost" data-act="decline" data-id="${esc(r.id)}" title="Без ответа: вопрос не будет виден на WB">Отклонить вопрос</button></div>`:""}</div>`;
   }else{
     const lbl=r.status==="approved"?(dryNow()?"Одобрено, но не уйдёт: сервис в тренировочном режиме":"Одобрено. Уйдёт на площадку при следующем прогоне"):(r.sent_by==="auto"?"Ответил сам":"Отправлено")+(r.sent?" · "+fmtDate(r.sent):"");
-    body=`<div class="reply"><div class="lbl">${esc(lbl)}${r.err?' · <span class="chip bad">ошибка отправки</span>':""}</div><div class="body">${esc(r.reply||"")}</div>
+    body=`<div class="reply"><div class="lbl">${esc(lbl)}${r.err?' · <span class="chip bad">ошибка отправки</span>':""}${visChip(r)?" · "+visChip(r):""}</div><div class="body">${esc(r.reply||"")}</div>
       ${r.status==="approved"?`<div class="actions"><button class="btn sm ghost" data-act="back" data-id="${esc(r.id)}">Вернуть на проверку</button></div>`:""}</div>`;
   }
   return `<article class="rev s-${waitSt?(r.no_facts||r.status==="manual"?"manual":"review"):"sent"}">${head}${chatBox}${body}</article>`;
 }
 function checksHtml(chk){return chk.length?chk.map(c=>`<span class="chip bad">✕ ${esc(c)}</span>`).join(""):'<span class="chip auto">✓ правила площадки соблюдены</span>';}
-function paintChecks(id,text){const chk=checkRules(text);const el=$("chk-"+id);if(el)el.innerHTML=checksHtml(chk);const b=document.querySelector(`[data-act="send"][data-id="${CSS.escape(id)}"]`);if(b)b.disabled=!!chk.length||b.dataset.low==="1";}
+function paintChecks(id,text){const chk=checkRules(text);const el=$("chk-"+id);if(el)el.innerHTML=checksHtml(chk);const b=document.querySelector(`[data-act="send"][data-id="${CSS.escape(id)}"]`);if(b)b.disabled=!!chk.length||b.dataset.low==="1";const ba=document.querySelector(`[data-act="author"][data-id="${CSS.escape(id)}"]`);if(ba)ba.disabled=!!chk.length;}
 const by=()=>(GHUSER&&GHUSER.name)?String(GHUSER.name).slice(0,30):(isOwner()?"владелец":"менеджер");
 
-async function decide(r,action,text){
+async function decide(r,action,text,to){
+  const extra=to?{to}:{};          // to:"author" — ответ только автору вопроса WB
   if(LIVE){
-    await writeDoc("decisions/"+r.id,{action,text:text||"",by:by(),ts:new Date().toISOString(),stars:r.stars||0,product:r.product||"",kind:r.kind});
-    const i=L.decisions.findIndex(d=>d.id===r.id),dd={id:r.id,action,text:text||"",by:by()};if(i>=0)L.decisions[i]=dd;else L.decisions.push(dd);
+    await writeDoc("decisions/"+r.id,Object.assign({action,text:text||"",by:by(),ts:new Date().toISOString(),stars:r.stars||0,product:r.product||"",kind:r.kind},extra));
+    const i=L.decisions.findIndex(d=>d.id===r.id),dd=Object.assign({id:r.id,action,text:text||"",by:by()},extra);if(i>=0)L.decisions[i]=dd;else L.decisions.push(dd);
   }else{
     const x=S.demo.reviews.find(o=>o.id===r.id);if(!x)return;
     if(action==="send"){
       if((x.reply||"").trim()!==text.trim()||x.no_facts)S.demo.edits.unshift({id:newId("e"),review_id:x.id,kind:x.kind,stars:x.stars,product:x.product,art:x.art,review_text:x.text,was:x.reply||"",final:text,ts:new Date().toISOString(),learned:0});
-      x.status="sent";x.reply=text;x.no_facts=0;x.sent=new Date().toISOString();x.sent_by="manual";
-    }else{x.status="manual";}
+      x.status="sent";x.reply=text;x.no_facts=0;x.sent=new Date().toISOString();x.sent_by="manual";x.vis=to==="author"?"author":"";
+    }else if(action==="decline"){x.status="sent";x.reply=WB_DECLINE_TEXT;x.no_facts=0;x.sent=new Date().toISOString();x.sent_by="manual";x.vis="decline";
+    }else{x.status="manual";x.vis="";}
     save();
   }
 }
@@ -1049,6 +1057,19 @@ async function act(a,id,btn){
       const chk=checkRules(text);if(chk.length){toast("Исправьте: "+chk.join(", "));return;}
       btn.disabled=true;await decide(r,"send",text);delete DRAFTS[id];
       toast(!LIVE?"Отправлено (демо).":dryNow()?"Одобрено, но сервис в тренировочном режиме: на площадку не уйдёт, пока владелец не включит боевой.":"Одобрено. Уйдёт на площадку при следующем прогоне.");
+    }
+    else if(a==="author"){
+      if(!wbQ(r))return;
+      const chk=checkRules(text);if(chk.length){toast("Исправьте: "+chk.join(", "));return;}
+      if(text.length<2){toast("Напишите ответ автору.");return;}
+      btn.disabled=true;await decide(r,"send",text,"author");delete DRAFTS[id];
+      toast(!LIVE?"Отправлено автору (демо).":dryNow()?"Одобрено, но сервис в тренировочном режиме: на площадку не уйдёт.":"Одобрено. Ответ увидит только автор, вопрос уйдёт с сайта WB — при следующем прогоне.");
+    }
+    else if(a==="decline"){
+      if(!wbQ(r))return;
+      if(!confirm("Отклонить вопрос? На WB его не будет видно, автор получит «"+WB_DECLINE_TEXT+"»."))return;
+      btn.disabled=true;await decide(r,"decline","");delete DRAFTS[id];
+      toast(!LIVE?"Вопрос отклонён (демо).":dryNow()?"Одобрено, но сервис в тренировочном режиме: на площадку не уйдёт.":"Вопрос будет отклонён при следующем прогоне.");
     }
     else if(a==="back"){btn.disabled=true;await decide(r,"manual","");toast("Возвращено на проверку.");}
     else if(a==="alt"){          // запасные варианты написаны заранее — переключение мгновенное, без ожидания ИИ
