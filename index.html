@@ -615,7 +615,8 @@ html.ab-big{overflow:hidden}
 <script>
 "use strict";
 /* ================= СПРАВОЧНИКИ ================= */
-const CABS=[{id:"kab1",label:"WB Каб 1",full:"WB · Каб 1",platform:"wb"},{id:"kab2",label:"WB Каб 2",full:"WB · Каб 2",platform:"wb"},{id:"oz",label:"Ozon",full:"Ozon",platform:"ozon"}];
+const HIDE_KABS=["kab1"];   // Андрей 27.10: «скрой с отклика каб1 ВБ вообще» — на сайте не показываем (воркер работает как был)
+const CABS=[{id:"kab1",label:"WB Каб 1",full:"WB · Каб 1",platform:"wb"},{id:"kab2",label:"WB Каб 2",full:"WB · Каб 2",platform:"wb"},{id:"oz",label:"Ozon",full:"Ozon",platform:"ozon"}].filter(c=>!HIDE_KABS.includes(c.id));
 const TYPES={thanks:"Благодарность",thanks_reco:"Благодарность + рекомендация",clarify:"Разбор замечания",apology:"Извинение + решение",escalate:"Извинение + возврат по браку"};
 const TONES={friendly:"Дружелюбно",formal:"Официально",expert:"Экспертно"};
 const MODES={auto:"Отвечает сам",draft:"Черновик мне",manual:"Вручную"};
@@ -722,7 +723,7 @@ const L={reviews:[],skills:[],edits:[],decisions:[],analytics:[],requests:[],con
 const DRAFTS={};            // набранный, но не отправленный текст: id → строка
 let needRender=false;
 const D={
-  reviews:()=>LIVE?overlay(L.reviews,L.decisions):((GH_MODE&&dbase)?[]:S.demo.reviews),
+  reviews:()=>(LIVE?overlay(L.reviews,L.decisions):((GH_MODE&&dbase)?[]:S.demo.reviews)).filter(r=>!HIDE_KABS.includes(r.kab)),
   skills:()=>(LIVE||dbase)?L.skills:S.demo.skills,
   edits:()=>(LIVE||dbase)?L.edits:S.demo.edits,
   config:()=>{const c=(LIVE||dbase)?(L.config||{}):S.demo.config;const out=Object.assign(clone(DEFAULT_CONFIG),c||{});out.rules=Object.assign(clone(DEFAULT_CONFIG.rules),(c&&c.rules)||{});return out;},
@@ -944,8 +945,9 @@ const SORTS={urgent:(a,b)=>urgency(a,b),newest:(a,b)=>byDate(b,a),oldest:byDate,
 function urgency(a,b){return (b.top3?1:0)-(a.top3?1:0)||(a.stars||9)-(b.stars||9)||String(a.created).localeCompare(String(b.created));}
 function renderList(page){
   const kind=page==="reviews"?"review":"question",isQ=kind==="question";
-  let tab=S.tab[page]||"wait";const cab=S.cab[page]||"all";
-  if(isQ&&tab==="quar")tab="wait";
+  let tab=S.tab[page]||"wait";const cab=CABS.some(c=>c.id===S.cab[page])?S.cab[page]:"all";
+  const noQuar=isQ||HIDE_KABS.includes("kab1");      // карантин бывает только у Каб 1
+  if(noQuar&&tab==="quar")tab="wait";
   const all=D.reviews().filter(r=>r.kind===kind&&(cab==="all"||r.kab===cab));
   const sortKey=(S.sort&&S.sort[page])||"urgent";
   const wait=all.filter(r=>WAIT_ST.includes(r.status)&&!(r.kind==="review"&&r.stars===5&&r.status==="new")).sort(SORTS[sortKey]||urgency);          // 5★ пишет и отправляет сервис сам (Андрей 25.10)
@@ -959,7 +961,7 @@ function renderList(page){
   const box=$("page-"+page);
   let html=`<div class="stack">
     <div><h1>${isQ?"Вопросы покупателей":"Отзывы"}</h1><p class="muted small">${isQ?"Ответ строится только по карточке товара и разделу «Знания». Если данных нет, сервис не выдумывает, а ждёт вашего ответа и запоминает его.":"Сверху самое срочное: негатив в топ-3 ленты, затем низкие оценки. Ответ уходит на площадку только после вашей кнопки «Отправить»."}</p></div>
-    <div class="seg wide" data-seg="tab"><button data-v="wait" class="${tab==="wait"?"active":""}">${isQ?"Ждут ответа":"Ждут проверки"} · ${wait.length}</button><button data-v="done" class="${tab==="done"?"active":""}">${isQ?"Отвечено":"Отправлено"} · ${done.length}</button>${isQ?"":`<button data-v="quar" class="${tab==="quar"?"active":""}">Карантин · ${quar.length}</button>`}</div>
+    <div class="seg wide" data-seg="tab"><button data-v="wait" class="${tab==="wait"?"active":""}">${isQ?"Ждут ответа":"Ждут проверки"} · ${wait.length}</button><button data-v="done" class="${tab==="done"?"active":""}">${isQ?"Отвечено":"Отправлено"} · ${done.length}</button>${noQuar?"":`<button data-v="quar" class="${tab==="quar"?"active":""}">Карантин · ${quar.length}</button>`}</div>
     <label class="f sortbox">Сортировка<select data-sort="${page}">${Object.entries(SORT_LABEL).filter(([k])=>!(isQ&&k.startsWith("stars"))).map(([k,l])=>`<option value="${k}" ${sortKey===k?"selected":""}>${l}</option>`).join("")}</select></label>
     <div class="filters" data-seg="cab"><button data-v="all" class="${cab==="all"?"active":""}">Все магазины · ${cnt("all")}</button>${CABS.map(c=>`<button data-v="${c.id}" class="${cab===c.id?"active":""}">${c.label} · ${cnt(c.id)}</button>`).join("")}</div>`;
   if(tab==="wait"){
@@ -1322,7 +1324,8 @@ function localAgg(scope,days){   // запасной расчёт по запи�
 }
 function statDoc(scope,days){const r=(L.analytics||[]).find(a=>a.id===scope+"_"+days);return ((LIVE||dbase)&&r)?r:localAgg(scope,days);}
 function renderStats(){
-  const scope=(S.statScope&&S.statScope!=="oz")?S.statScope:"all",days=+S.statDays||90;
+  const vis=[...document.querySelectorAll("#statScope button:not([hidden])")].map(b=>b.dataset.v);
+  const scope=vis.includes(S.statScope)?S.statScope:vis[0],days=+S.statDays||90;
   document.querySelectorAll("#statScope button").forEach(b=>b.classList.toggle("active",b.dataset.v===scope));
   document.querySelectorAll("#statDays button").forEach(b=>b.classList.toggle("active",+b.dataset.v===days));
   const a=statDoc(scope,days),fmt=v=>v==null?"—":String(v).replace(".",",");
@@ -1347,6 +1350,8 @@ function renderStats(){
   // сравнение магазинов видно всегда (выбранный подсвечен): при переключении магазина вёрстка не прыгает
   sortTable("tblCab",cols("Магазин"),CABS.filter(c=>c.id!=="oz").map(c=>Object.assign({},statDoc(c.id,days),{name:cabFull(c),n:statDoc(c.id,days).total,cab:c.id})),r=>esc(r.name),r=>r.cab===scope?"cur":"");
 }
+// «Все вместе» в статистике — это WB Каб 1 + Каб 2: при скрытом кабинете прячем его и «все», остаётся один кабинет
+document.querySelectorAll("#statScope button").forEach(b=>{if(HIDE_KABS.includes(b.dataset.v)||(HIDE_KABS.length&&b.dataset.v==="all"))b.hidden=true;});
 document.querySelectorAll("#statScope button").forEach(b=>b.addEventListener("click",()=>{S.statScope=b.dataset.v;save();renderStats();}));
 document.querySelectorAll("#statDays button").forEach(b=>b.addEventListener("click",()=>{S.statDays=+b.dataset.v;save();renderStats();}));
 
