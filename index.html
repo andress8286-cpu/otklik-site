@@ -953,12 +953,15 @@ function renderList(page){
   const done=all.filter(r=>r.status==="approved"||r.status==="sent").sort(sortKey==="urgent"?doneDef:(SORTS[sortKey]||doneDef));
   const quar=all.filter(r=>r.status==="quarantine").sort((a,b)=>byDate(b,a));
   const ready=wait.filter(r=>r.reply&&!r.no_facts&&r.status!=="manual"),fresh=wait.filter(r=>r.status==="new"&&!r.reply),need=wait.filter(r=>!(r.reply&&!r.no_facts&&r.status!=="manual")&&!(r.status==="new"&&!r.reply));
+  // Андрей 27.10: на кнопках магазинов — сколько в открытой вкладке у каждого
+  const inTab=tab==="done"?(r=>r.status==="approved"||r.status==="sent"):tab==="quar"?(r=>r.status==="quarantine"):(r=>WAIT_ST.includes(r.status)&&!(r.kind==="review"&&r.stars===5&&r.status==="new"));
+  const kAll=D.reviews().filter(r=>r.kind===kind&&inTab(r)),cnt=id=>kAll.filter(r=>id==="all"||r.kab===id).length;
   const box=$("page-"+page);
   let html=`<div class="stack">
     <div><h1>${isQ?"Вопросы покупателей":"Отзывы"}</h1><p class="muted small">${isQ?"Ответ строится только по карточке товара и разделу «Знания». Если данных нет, сервис не выдумывает, а ждёт вашего ответа и запоминает его.":"Сверху самое срочное: негатив в топ-3 ленты, затем низкие оценки. Ответ уходит на площадку только после вашей кнопки «Отправить»."}</p></div>
     <div class="seg wide" data-seg="tab"><button data-v="wait" class="${tab==="wait"?"active":""}">${isQ?"Ждут ответа":"Ждут проверки"} · ${wait.length}</button><button data-v="done" class="${tab==="done"?"active":""}">${isQ?"Отвечено":"Отправлено"} · ${done.length}</button>${isQ?"":`<button data-v="quar" class="${tab==="quar"?"active":""}">Карантин · ${quar.length}</button>`}</div>
     <label class="f sortbox">Сортировка<select data-sort="${page}">${Object.entries(SORT_LABEL).filter(([k])=>!(isQ&&k.startsWith("stars"))).map(([k,l])=>`<option value="${k}" ${sortKey===k?"selected":""}>${l}</option>`).join("")}</select></label>
-    <div class="filters" data-seg="cab"><button data-v="all" class="${cab==="all"?"active":""}">Все магазины</button>${CABS.map(c=>`<button data-v="${c.id}" class="${cab===c.id?"active":""}">${c.label}</button>`).join("")}</div>`;
+    <div class="filters" data-seg="cab"><button data-v="all" class="${cab==="all"?"active":""}">Все магазины · ${cnt("all")}</button>${CABS.map(c=>`<button data-v="${c.id}" class="${cab===c.id?"active":""}">${c.label} · ${cnt(c.id)}</button>`).join("")}</div>`;
   if(tab==="wait"){
     if(!wait.length)html+=`<div class="empty">Здесь пусто. Новое появится после следующего прогона.</div>`;
     if(ready.length)html+=`<div class="sect"><h2>Черновик готов</h2><span class="small muted">проверьте и отправьте</span></div>`+ready.map(r=>card(r)).join("");
