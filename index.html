@@ -1743,19 +1743,19 @@ document.addEventListener("fullscreenchange",()=>{const el=$("abCard");if(!docum
 /* Как в Юнитке (25.10): аффирмации Андрея с его магнитов + 6 добавленных, слайд-шоу «как у Apple»; музыка — space-music.mp3 (Suno),
    играет с первого нажатия, гасят кнопка звука в шапке и 🔊 в окошке (одна настройка otklik.mute). */
 const SP_AFF=[
-  "Всё складывается наилучшим образом для моего высшего блага.",
-  "Из этой ситуации выйдет только хорошее для меня.",
-  "Я в безопасности.",
-  "Вселенная любит меня.",
-  "Жизнь моя полна чудес.",
-  "Деньги сыплются с небес.",
-  "Я притягиваю изобилие легко и с радостью.",
-  "Всё, что мне нужно, приходит ко мне вовремя.",
-  "Каждый новый день приносит мне подарки.",
-  "Удача улыбается мне каждый день.",
-  "Мир полон возможностей, и они сами находят меня.",
-  "Я выбираю радость и спокойствие."
-].flatMap((s,i)=>i%3===2?[s,"Благодарю."]:[s]);   // Андрей 28.10: «через каждые 3 аффирмации — одну «Благодарю»»
+  "Всё складывается наилучшим образом для моего высшего блага",
+  "Из этой ситуации выйдет только хорошее для меня",
+  "Я в безопасности",
+  "Вселенная любит меня",
+  "Жизнь моя полна чудес",
+  "Деньги сыплются с небес",
+  "Я притягиваю изобилие легко и с радостью",
+  "Всё, что мне нужно, приходит ко мне вовремя",
+  "Каждый новый день приносит мне подарки",
+  "Удача улыбается мне каждый день",
+  "Мир полон возможностей, и они сами находят меня",
+  "Я выбираю радость и спокойствие"
+].flatMap((s,i)=>i%3===2?[s,"Благодарю"]:[s]);   // Андрей 28.10: «через каждые 3 аффирмации — одну «Благодарю»»
 const SP_ICO={
   prev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
   next:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
@@ -1862,7 +1862,7 @@ function spStars(el){
   const size=()=>{
     const dpr=Math.min(2,devicePixelRatio||1);W=c.clientWidth;H=c.clientHeight;if(!W||!H)return;
     c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);g.setTransform(dpr,0,0,dpr,0,0);
-    S=Array.from({length: 0},()=>({x:Math.random()*W,y:Math.random()*H*0.78,r:0.35+Math.random()*Math.random()*1.5,
+    S=Array.from({length:Math.round(W*H/2400)},()=>({x:Math.random()*W,y:Math.random()*H*0.78,r:0.35+Math.random()*Math.random()*1.5,
       p:Math.random()*6.3,s:0.5+Math.random()*2,z:Math.random(),h:Math.random()<0.2?"#cfd8ff":Math.random()<0.1?"#ffe2b8":"#fff"}));
   };
   const frame=t=>{
@@ -1909,7 +1909,7 @@ function spaceDeco(on){
   }
   if(!d){
     const el=document.createElement("div");el.id="spDeco";el.setAttribute("aria-hidden","true");
-    let h="";for(let k=0;k<0;k++)h+=`<i class="tw" style="left:${(Math.random()*100).toFixed(1)}%;top:${(Math.random()*100).toFixed(1)}%;--z:${(1.5+Math.random()*2.6).toFixed(1)}px;--d:${(2.5+Math.random()*4).toFixed(1)}s;--dl:${(-Math.random()*6).toFixed(1)}s"></i>`;
+    let h="";for(let k=0;k<42;k++)h+=`<i class="tw" style="left:${(Math.random()*100).toFixed(1)}%;top:${(Math.random()*100).toFixed(1)}%;--z:${(1.5+Math.random()*2.6).toFixed(1)}px;--d:${(2.5+Math.random()*4).toFixed(1)}s;--dl:${(-Math.random()*6).toFixed(1)}s"></i>`;
     el.innerHTML=h;document.body.appendChild(el);
     setTimeout(()=>spMeteor(el),2500);el._iv=setInterval(()=>spMeteor(el),7000);
   }
