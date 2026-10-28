@@ -13,9 +13,12 @@
 <title>Отклик</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <script>/* тема — до отрисовки страницы, без мигания; шрифт Rubik грузится, только когда выбрана «Angry Birds» */
-function themeFont(t){if(t!=="birds"||document.getElementById("tf-birds"))return;var l=document.createElement("link");l.id="tf-birds";l.rel="stylesheet";
-  l.href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap";document.head.appendChild(l);}
-try{var t0=localStorage.getItem("otklik.theme");if(/^(light|dark|birds)$/.test(t0)){document.documentElement.setAttribute("data-theme",t0);themeFont(t0);}}catch(e){}</script>
+var TF={birds:"Rubik:wght@400;500;600;700;800;900",space:"Unbounded:wght@600;700&family=Manrope:wght@400;500;600;700;800"};
+function themeFont(t){if(!TF[t]||document.getElementById("tf-"+t))return;var l=document.createElement("link");l.id="tf-"+t;l.rel="stylesheet";
+  l.href="https://fonts.googleapis.com/css2?family="+TF[t]+"&display=swap";document.head.appendChild(l);}
+/* Андрей 28.10: «при следующем обновлении страницы разово тема сама поменяется на «Космос», а дальше в обычном режиме» — один раз на устройство */
+try{if(!localStorage.getItem("otklik.space1")){localStorage.setItem("otklik.space1","1");localStorage.setItem("otklik.theme","space");}}catch(e){}
+try{var t0=localStorage.getItem("otklik.theme");if(/^(light|dark|birds|space)$/.test(t0)){document.documentElement.setAttribute("data-theme",t0);themeFont(t0);}}catch(e){}</script>
 <style>
 :root{
   color-scheme:light;
@@ -209,7 +212,7 @@ label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mu
 .modebar{background:var(--bad-soft);color:var(--bad);font-size:13px;font-weight:600;line-height:1.35;padding:8px 16px;text-align:center}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--primary);border-radius:50%;animation:sp .8s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){:root:not([data-theme="birds"]) *{transition:none!important;animation:none!important}}          /* «Angry Birds» двигается всегда, как в Юнитке */
+@media (prefers-reduced-motion:reduce){:root:not([data-theme="birds"]):not([data-theme="space"]) *{transition:none!important;animation:none!important}}          /* «Angry Birds» двигается всегда, как в Юнитке */
 
 /* v2 */
 html,body{max-width:100%;overflow-x:clip}          /* clip, а не hidden: hidden делает body прокручиваемым блоком, и закреплённые шапка и меню уезжают */
@@ -296,6 +299,106 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
 #btnSound .off,#btnSound[aria-pressed="true"] .on{display:none}
 #btnSound[aria-pressed="true"] .off{display:block}
 
+/* «Космос» (28.10.2026, Андрей: «только аффирмации перенести» из Юнитки, Код\unitka\site\index.html 25.10): фон — глубокий космос
+   (space-bg*.webp), мерцают звёзды и пролетают метеоры (#spDeco); карточки — тёмное стекло; над разделами окошко #spCard — слайд-шоу
+   аффирмаций Андрея (SP_AFF) с переходом «как у Apple», стрелки / свайп / тап по краю / ← →, сами каждые 7 с, музыка space-music.mp3. */
+:root[data-theme="space"]{
+  color-scheme:dark;
+  --bg:#060818;--surface:rgba(14,18,42,.74);--surface2:rgba(255,255,255,.06);--text:#eef0ff;--muted:#a9aed6;--line:rgba(255,255,255,.1);
+  --accent:#ffd27a;--accent-ink:#ffe2a6;--accent-soft:rgba(255,210,122,.14);
+  --primary:#a493ff;--primary-ink:#0b0a26;--primary-soft:rgba(164,147,255,.2);
+  --good:#7fe0a6;--good-soft:rgba(127,224,166,.13);--warn:#ffd27a;--warn-soft:rgba(255,210,122,.13);--bad:#ff8f9e;--bad-soft:rgba(255,143,158,.14);
+  --wb:#d6a2ff;--wb-soft:rgba(214,162,255,.16);--ozon:#8fb4ff;--ozon-soft:rgba(143,180,255,.16);
+  --shadow:0 12px 34px rgba(0,0,0,.35);
+  --display:"Unbounded","Manrope",system-ui,sans-serif;--body:"Manrope","IBM Plex Sans",system-ui,sans-serif;
+  --solid:#11152f;--spbg:url("space-bg.webp");--sph:url("space-hero.webp");--sbh:clamp(270px,31vw,400px);
+}
+[data-theme="space"] body{background:#060818}
+[data-theme="space"] body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:linear-gradient(180deg,rgba(6,8,24,.2),rgba(6,8,24,.5)),var(--spbg) center/cover}
+#spDeco{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+#spDeco .tw{position:absolute;width:var(--z);height:var(--z);border-radius:50%;background:#fff;box-shadow:0 0 6px 1px rgba(200,215,255,.85);opacity:.15;animation:sp-tw var(--d) ease-in-out infinite;animation-delay:var(--dl)}
+@keyframes sp-tw{0%,100%{opacity:.12;transform:scale(.55)}50%{opacity:1;transform:scale(1)}}
+#spDeco .met{position:absolute;left:0;top:0;width:190px;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(214,206,255,.7) 70%,#fff);
+  box-shadow:0 0 8px rgba(190,180,255,.7);opacity:0}
+[data-theme="space"] header.top{background:rgba(7,9,26,.9);border-bottom-color:rgba(164,147,255,.18);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+[data-theme="space"] nav.tabs{background:rgba(7,9,26,.9);border-color:rgba(164,147,255,.2);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+[data-theme="space"] nav.tabs button{background:rgba(255,255,255,.05);border-color:rgba(200,190,255,.14)}
+[data-theme="space"] nav.tabs button.active{background:rgba(164,147,255,.22);border-color:#a493ff;color:#cfc6ff}
+[data-theme="space"] :is(.card,.rev,.rule,.skill,.skill-item,.stat,.empty){background:var(--surface);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:rgba(200,190,255,.12);border-radius:18px}
+[data-theme="space"] :is(.tmenu,.toast){background:var(--solid)}
+[data-theme="space"] .logo{font-family:var(--display);font-weight:700;letter-spacing:.04em}
+[data-theme="space"] .logo .mark{border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0,#cfc6ff 18%,#7a64ff 55%,#2c1f80 100%);color:#fff;box-shadow:0 0 14px rgba(164,147,255,.6)}
+[data-theme="space"] .btn.primary{background:linear-gradient(135deg,#c2b6ff,#806cff);color:#0b0a26;border-color:transparent}
+[data-theme="space"] :is(.btn,textarea,input[type=text],input[type=password],select){border-radius:14px}
+[data-theme="space"] :is(textarea,input[type=text],input[type=password],select){background:rgba(255,255,255,.06)}
+[data-theme="space"] main{position:relative;padding-top:24px}
+#spCard{position:relative;height:var(--sbh);margin:0 0 26px;border-radius:22px;overflow:hidden;isolation:isolate;background:#050716;outline:none;
+  box-shadow:0 0 0 1px rgba(190,180,255,.3),0 0 42px rgba(120,100,255,.24),0 18px 50px rgba(0,0,0,.55);-webkit-user-select:none;user-select:none}
+#spCard:focus-visible{box-shadow:0 0 0 2px #cfc6ff,0 0 42px rgba(120,100,255,.4)}
+#spCard .spimg{position:absolute;inset:-7%;background:var(--sph) 50% 50%/cover;transition:transform 2.6s cubic-bezier(.2,.7,.2,1);will-change:transform}
+#spCard .spsh{position:absolute;inset:0;background:radial-gradient(ellipse 62% 60% at 50% 48%,rgba(4,6,20,.58),rgba(4,6,20,.18) 72%,transparent),
+  linear-gradient(180deg,rgba(4,6,20,.6),transparent 26%,transparent 72%,rgba(4,6,20,.6))}
+#spCard canvas.spst{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#spCard .spfl{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;
+  background:linear-gradient(105deg,transparent 30%,rgba(220,214,255,.16) 45%,rgba(255,255,255,.28) 50%,rgba(220,214,255,.16) 55%,transparent 70%)}
+#spCard .sphud{position:absolute;z-index:2;inset:10px;pointer-events:none;border-radius:16px;border:1px solid rgba(200,190,255,.16)}
+#spCard .sphud i{position:absolute;width:24px;height:24px;border:2px solid #d3cbff;filter:drop-shadow(0 0 5px rgba(164,147,255,.95))}
+#spCard .sphud i:nth-child(1){left:-1px;top:-1px;border-right:0;border-bottom:0;border-top-left-radius:16px}
+#spCard .sphud i:nth-child(2){right:-1px;top:-1px;border-left:0;border-bottom:0;border-top-right-radius:16px}
+#spCard .sphud i:nth-child(3){left:-1px;bottom:-1px;border-right:0;border-top:0;border-bottom-left-radius:16px}
+#spCard .sphud i:nth-child(4){right:-1px;bottom:-1px;border-left:0;border-top:0;border-bottom-right-radius:16px}
+#spCard .sptop{position:absolute;z-index:3;left:26px;right:26px;top:22px;display:flex;align-items:center;gap:10px;pointer-events:none;
+  font:700 11px/1 var(--body);letter-spacing:.16em;text-transform:uppercase;color:rgba(232,229,255,.85)}
+#spCard .splogo{font:700 13px/1 var(--display);letter-spacing:.26em;color:#fff;text-shadow:0 0 12px rgba(164,147,255,.95)}
+#spCard .spch{padding:5px 10px;border-radius:999px;background:rgba(164,147,255,.16);border:1px solid rgba(200,190,255,.32)}
+#spCard .spnum{margin-left:auto;font-variant-numeric:tabular-nums}
+#spCard .spstage{position:absolute;z-index:2;inset:58px 78px 56px;display:grid;place-items:center;text-align:center;cursor:grab;touch-action:pan-y}
+#spCard .spstage:active{cursor:grabbing}
+#spCard .spq{grid-area:1/1;margin:0;max-width:21ch;font:800 clamp(25px,3.5vw,50px)/1.16 "Manrope",var(--body);letter-spacing:-.022em;color:#fff;text-wrap:balance;
+  text-shadow:0 2px 22px rgba(5,6,25,.85),0 0 40px rgba(130,110,255,.35)}
+#spCard .spq span{display:inline-block}
+#spCard .spq.drag{transition:none}
+#spCard .spq.back{transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .35s}
+#spCard .spnav{position:absolute;z-index:3;top:50%;width:46px;height:46px;margin-top:-23px;padding:0;border-radius:50%;border:1px solid rgba(220,215,255,.36);
+  background:rgba(10,12,36,.42);color:#fff;display:grid;place-items:center;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);transition:transform .2s,background .2s}
+#spCard .spnav:hover{background:rgba(164,147,255,.38);transform:scale(1.08)}
+#spCard .spnav:active{transform:scale(.94)}
+#spCard .spnav.prev{left:20px} #spCard .spnav.next{right:20px}
+#spCard .spnav svg,#spCard .spbtns svg{width:20px;height:20px;display:block}
+#spCard .spbar{position:absolute;z-index:3;left:26px;right:146px;bottom:20px;display:flex;gap:6px}
+#spCard .spbar button{flex:1;min-width:0;height:16px;padding:6px 0;border:0;background:none;cursor:pointer}
+#spCard .spbar button i{display:block;height:4px;border-radius:2px;background:rgba(255,255,255,.22);overflow:hidden}
+#spCard .spbar button i b{display:block;height:100%;width:100%;background:#fff;transform:scaleX(0);transform-origin:0 50%}
+#spCard .spbar button.done i b{transform:scaleX(1);background:rgba(255,255,255,.75)}
+#spCard .spbar button.cur i b{animation:sp-fill 7s linear forwards;box-shadow:0 0 8px #b3a5ff}
+#spCard:is(.hold,.stop) .spbar button.cur i b{animation-play-state:paused}
+@keyframes sp-fill{to{transform:scaleX(1)}}
+#spCard .spbtns{position:absolute;z-index:3;right:22px;bottom:10px;display:flex;gap:6px}
+#spCard .spbtns button{width:36px;height:36px;border-radius:50%;border:1px solid rgba(220,215,255,.36);background:rgba(10,12,36,.42);color:#fff;display:grid;place-items:center;padding:0;cursor:pointer}
+#spCard .spbtns button:hover{background:rgba(164,147,255,.38)}
+#spCard .spbtns svg{width:16px;height:16px}
+#spCard [data-sp="play"] .pl,#spCard.stop [data-sp="play"] .pa,#spCard [data-sp="mute"] .off,#spCard [data-sp="mute"][aria-pressed="true"] .on{display:none}
+#spCard [data-sp="mute"][aria-pressed="true"] .off{display:block}
+#spCard.stop [data-sp="play"] .pl{display:block}
+#spCard.big{position:fixed;inset:0;z-index:300;height:auto;margin:0;border-radius:0}
+#spCard.big .spq{font-size:clamp(30px,5.2vw,80px)}
+#spCard.big .spstage{inset:84px 96px 84px}
+@media (max-width:899px){
+  :root[data-theme="space"]{--spbg:url("space-bg-m.webp");--sph:url("space-hero-m.webp");--sbh:max(300px,82vw)}
+  [data-theme="space"] main{padding-top:16px}
+  #spCard{margin:0 0 22px;border-radius:18px}
+  #spCard .sptop{left:20px;right:20px;top:20px;font-size:10px;letter-spacing:.12em}
+  #spCard .splogo{font-size:11.5px}
+  #spCard .spstage{inset:52px 20px 56px}
+  #spCard .spq{max-width:none;font-size:clamp(21px,6.3vw,30px)}
+  #spCard .spnav{display:none}
+  #spCard .spbar{left:20px;right:150px;bottom:18px;gap:4px}
+  #spCard .spbtns{right:16px;bottom:9px}
+  #spCard.big .spq{font-size:clamp(26px,8vw,44px)}
+  #spCard.big .spstage{inset:70px 22px 70px}
+}
+@media (orientation:portrait) and (max-width:899px){#spCard.big .spimg{background-image:url("space-hero-tall.webp")}}
 /* «Angry Birds» (24.10.2026, Андрей: «добавь тему энгри бердс в отклик из юнитки») — та же тема, что в Юнитке (Код\unitka, 23.10).
    Картинки NeuralBox NB Pro, игра и физика — копии из Код\unitka\site, лежат в site_assets (build_pages.py кладёт их рядом со страницей).
    Фон — остров свиней во весь экран (#abDeco: едет от мыши и при прокрутке, пролетают птицы, падают перья); шапка и нижнее меню —
@@ -1411,7 +1514,9 @@ const THEMES={
   dark:["Тёмная",'<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c-4 1-8-3-9-9z"/></svg>',
     '<svg class="tsw" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8.6" fill="#242D37" stroke="#8a8a85" stroke-width="1.2"/></svg>'],
   birds:["Angry Birds",'<svg viewBox="0 0 24 24"><path d="M4.5 13.5a7.5 7.5 0 0 1 15 0c0 3.6-3.4 6-7.5 6s-7.5-2.4-7.5-6Z"/><path d="M8 10.2l3 1.3M16 10.2l-3 1.3M11 14l2.6 1.1-2.6 1M9.5 6.5c.4-1.6 1.6-2.6 3-3"/></svg>',
-    '<svg class="tsw" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8.6" fill="#e0241c" stroke="#3b220e" stroke-width="1.6"/><path d="M3.2 12.6c2 2.6 4.3 3.7 6.8 3.7s4.8-1.1 6.8-3.7c-2.2.9-4.4 1.3-6.8 1.3s-4.6-.4-6.8-1.3Z" fill="#f3dcb4"/><circle cx="7.6" cy="9.4" r="1.7" fill="#fff"/><circle cx="12.4" cy="9.4" r="1.7" fill="#fff"/><circle cx="8" cy="9.6" r=".7"/><circle cx="12" cy="9.6" r=".7"/><path d="M5.4 7.2l4 1.6M14.6 7.2l-4 1.6" stroke="#1d1007" stroke-width="1.5" stroke-linecap="round"/><path d="M8.6 11l2.8-.2 2 1.3-2.4.9Z" fill="#ffb31f" stroke="#7a3d06" stroke-width=".5"/></svg>']
+    '<svg class="tsw" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8.6" fill="#e0241c" stroke="#3b220e" stroke-width="1.6"/><path d="M3.2 12.6c2 2.6 4.3 3.7 6.8 3.7s4.8-1.1 6.8-3.7c-2.2.9-4.4 1.3-6.8 1.3s-4.6-.4-6.8-1.3Z" fill="#f3dcb4"/><circle cx="7.6" cy="9.4" r="1.7" fill="#fff"/><circle cx="12.4" cy="9.4" r="1.7" fill="#fff"/><circle cx="8" cy="9.6" r=".7"/><circle cx="12" cy="9.6" r=".7"/><path d="M5.4 7.2l4 1.6M14.6 7.2l-4 1.6" stroke="#1d1007" stroke-width="1.5" stroke-linecap="round"/><path d="M8.6 11l2.8-.2 2 1.3-2.4.9Z" fill="#ffb31f" stroke="#7a3d06" stroke-width=".5"/></svg>'],
+  space:["Космос",'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5.2"/><ellipse cx="12" cy="12" rx="10" ry="3.6" transform="rotate(-20 12 12)"/></svg>',
+    '<svg class="tsw" viewBox="0 0 20 20"><defs><radialGradient id="swSp" cx=".3" cy=".3" r=".9"><stop offset="0" stop-color="#cfc6ff"/><stop offset=".5" stop-color="#6a4fd6"/><stop offset="1" stop-color="#0b0a26"/></radialGradient></defs><circle cx="10" cy="10" r="8.6" fill="url(#swSp)" stroke="#8a8a85" stroke-width="1.2"/><circle cx="14" cy="6" r=".9" fill="#fff"/><circle cx="6" cy="13.5" r=".6" fill="#fff"/></svg>']
 };
 let themeMem="auto";          // если браузер не даёт хранить (инкогнито) — тема живёт до перезагрузки
 function curTheme(){let t=themeMem;try{t=localStorage.getItem("otklik.theme")||themeMem;}catch(e){}return THEMES[t]?t:"auto";}
@@ -1420,12 +1525,14 @@ function applyTheme(){
   if(t==="auto")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",t);
   themeFont(t);b.innerHTML=THEMES[t][1];b.title="Тема: "+THEMES[t][0].toLowerCase();
   birdsDeco(t==="birds");
+  spaceDeco(t==="space");
   if(SOUND[t])SOUND[t](soundOff());syncSound();
 }
 /* звук — кнопка в шапке у тем со звуком (Андрей 24.10: «в шапке для всех последующих тем»); одна настройка otklik.mute на все такие темы,
    кнопка звука внутри игры — та же настройка. Новая тема со звуком: добавить в SOUND, как выключить звук в её игре или сцене. */
 const SOUND={
-  birds:off=>{try{localStorage.setItem("unitka.abMute",off?"1":"0");}catch(e){}if(window.BirdsGame)BirdsGame.mute(off);}   // ab-game.js читает unitka.abMute при загрузке
+  birds:off=>{try{localStorage.setItem("unitka.abMute",off?"1":"0");}catch(e){}if(window.BirdsGame)BirdsGame.mute(off);},   // ab-game.js читает unitka.abMute при загрузке
+  space:off=>spMusic(!off)
 };
 let muteMem=null;            // без localStorage — до перезагрузки
 function soundOff(){
@@ -1436,7 +1543,7 @@ function soundOff(){
 function syncSound(){
   const t=curTheme(),b=$("btnSound"),off=soundOff();
   b.hidden=!SOUND[t];b.setAttribute("aria-pressed",off);b.title=off?"Звук выключен — включить":"Звук включён — выключить";
-  document.querySelectorAll('[data-ab="mute"]').forEach(x=>x.setAttribute("aria-pressed",off));
+  document.querySelectorAll('[data-ab="mute"],[data-sp="mute"]').forEach(x=>x.setAttribute("aria-pressed",off));
 }
 function setSound(off){
   muteMem=off;try{localStorage.setItem("otklik.mute",off?"1":"0");}catch(e){}
@@ -1446,7 +1553,7 @@ $("btnSound").addEventListener("click",()=>{const off=!soundOff();if(!off&&curTh
 function themeMenu(open){
   let m=$("tmenu");if(!open){if(m)m.remove();return;}if(m)return;
   const t=curTheme();m=document.createElement("div");m.id="tmenu";m.className="tmenu";m.setAttribute("role","menu");
-  m.innerHTML=Object.entries(THEMES).map(([k,v])=>(k==="birds"?'<div class="tgrp">Весёлые</div>':"")+`<button role="menuitemradio" aria-checked="${k===t}" data-th="${k}">${v[2]}${v[0]}</button>`).join("");
+  m.innerHTML=Object.entries(THEMES).map(([k,v])=>(k==="birds"?'<div class="tgrp">Весёлые</div>':k==="space"?'<div class="tgrp">Спокойные</div>':"")+`<button role="menuitemradio" aria-checked="${k===t}" data-th="${k}">${v[2]}${v[0]}</button>`).join("");
   document.body.appendChild(m);
   const r=$("btnTheme").getBoundingClientRect();m.style.top=Math.round(r.bottom+8)+"px";m.style.right=Math.max(8,Math.round(innerWidth-r.right))+"px";
   m.addEventListener("click",e=>{const b=e.target.closest("[data-th]");if(!b)return;themeMem=b.dataset.th;
@@ -1602,6 +1709,177 @@ function birdsDeco(on){
 // во весь экран: Esc и выход из полноэкранного режима кнопкой браузера возвращают карточку на место
 document.addEventListener("keydown",e=>{const el=$("abCard");if(e.key==="Escape"&&el&&el.classList.contains("big"))abBig(el,false);});
 document.addEventListener("fullscreenchange",()=>{const el=$("abCard");if(!document.fullscreenElement&&el&&el.classList.contains("big")){el.classList.remove("big");document.documentElement.classList.remove("ab-big");}});
+
+/* ================= ТЕМА «КОСМОС» ================= */
+/* Как в Юнитке (25.10): аффирмации Андрея с его магнитов + 6 добавленных, слайд-шоу «как у Apple»; музыка — space-music.mp3 (Suno),
+   играет с первого нажатия, гасят кнопка звука в шапке и 🔊 в окошке (одна настройка otklik.mute). */
+const SP_AFF=[
+  "Всё складывается наилучшим образом для моего высшего блага.",
+  "Из этой ситуации выйдет только хорошее для меня.",
+  "Я в безопасности.",
+  "Вселенная любит меня.",
+  "Жизнь моя полна чудес.",
+  "Деньги сыплются с небес.",
+  "Я притягиваю изобилие легко и с радостью.",
+  "Всё, что мне нужно, приходит ко мне вовремя.",
+  "Каждый новый день приносит мне подарки.",
+  "Удача улыбается мне каждый день.",
+  "Мир полон возможностей, и они сами находят меня.",
+  "Я выбираю радость и спокойствие."
+];
+const SP_ICO={
+  prev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  next:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  play:'<svg class="pa" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><svg class="pl" viewBox="0 0 24 24" fill="currentColor"><path d="M7.5 4.8v14.4a1 1 0 0 0 1.5.9l11.2-7.2a1 1 0 0 0 0-1.7L9 4a1 1 0 0 0-1.5.8Z"/></svg>'
+};
+const SP_CAM=[[0,0,1.04],[-2.6,1,1.1],[2.2,-1.4,1.08],[-1.6,-1.2,1.12],[2.6,1.3,1.09],[0,2,1.11]];   // камера по картинке на слайд: x %, y %, масштаб
+const spLS={get:(k,d)=>{try{const v=localStorage.getItem("otklik."+k);return v===null?d:v;}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem("otklik."+k,v);}catch(e){}}};
+let spAud=null;
+function spMusic(on){
+  if(!on||curTheme()!=="space"){if(spAud)spAud.pause();return;}
+  if(!spAud){spAud=new Audio("space-music.mp3");spAud.loop=true;spAud.volume=0.4;}
+  spAud.play().catch(()=>{});                                   // без нажатия браузер не даст — заиграет с первого нажатия
+}
+document.addEventListener("pointerdown",()=>{if(curTheme()==="space"&&!soundOff()&&(!spAud||spAud.paused))spMusic(true);},true);
+function spShow(el,i,dir){
+  const n=SP_AFF.length;i=((i%n)+n)%n;dir=dir||1;
+  const st=el.querySelector(".spstage"),old=st.querySelector(".spq:not(.out)"),q=document.createElement("p");
+  q.className="spq";q.innerHTML=SP_AFF[i].split(" ").map(w=>`<span>${w}</span>`).join(" ");
+  st.appendChild(q);
+  if(old){                                                      // старая фраза тает в размытие, новая проявляется по слову
+    old.classList.add("out");old.setAttribute("aria-hidden","true");
+    const ws=[...old.children];
+    ws.forEach((w,k)=>w.animate([{opacity:1,filter:"blur(0px)",transform:"none"},
+      {opacity:0,filter:"blur(12px)",transform:`translate(${-dir*26}px,-12px) scale(.94)`}],
+      {duration:460,delay:k*24,easing:"cubic-bezier(.4,0,.7,.2)",fill:"forwards"}));
+    setTimeout(()=>old.remove(),520+ws.length*24);
+  }
+  [...q.children].forEach((w,k)=>w.animate([{opacity:0,filter:"blur(16px)",transform:`translate(${dir*36}px,26px) scale(1.06)`},
+    {opacity:1,filter:"blur(0px)",transform:"none"}],
+    {duration:1100,delay:(old?280:120)+k*75,easing:"cubic-bezier(.16,1,.3,1)",fill:"backwards"}));
+  const c=SP_CAM[i%SP_CAM.length];
+  el.querySelector(".spimg").style.transform=`translate(${c[0]}%,${c[1]}%) scale(${c[2]})`;
+  if(old)el.querySelector(".spfl").animate([{opacity:0,transform:`translateX(${-dir*60}%)`},{opacity:1,offset:0.45},
+    {opacity:0,transform:`translateX(${dir*60}%)`}],{duration:1300,easing:"cubic-bezier(.3,.6,.3,1)"});
+  el._i=i;spLS.set("spIdx",i);
+  el.querySelector(".spnum").textContent=String(i+1).padStart(2,"0")+" / "+String(n).padStart(2,"0");
+  const segs=el.querySelectorAll(".spbar button");
+  segs.forEach((b,k)=>{b.classList.toggle("done",k<i);b.classList.remove("cur");b.setAttribute("aria-current",k===i);});
+  void el.offsetWidth;segs[i].classList.add("cur");             // полоска текущего слайда заполняется заново; дошла — следующий
+}
+function spBig(el,on){
+  el.classList.toggle("big",on);document.documentElement.classList.toggle("sp-big",on);
+  if(on&&el.requestFullscreen&&!document.fullscreenElement)el.requestFullscreen({navigationUI:"hide"}).catch(()=>{});
+  if(!on&&document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+}
+/* живые звёзды поверх картинки окошка: мерцают, плывут за мышью / наклоном, изредка падает звезда; ~30 кадров/с, только пока окошко видно */
+function spStars(el){
+  const c=el.querySelector(".spst"),g=c.getContext("2d");
+  let W=0,H=0,S=[],raf=0,last=0,mx=0,my=0,tx=0,ty=0,met=null;
+  const size=()=>{
+    const dpr=Math.min(2,devicePixelRatio||1);W=c.clientWidth;H=c.clientHeight;if(!W||!H)return;
+    c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);g.setTransform(dpr,0,0,dpr,0,0);
+    S=Array.from({length:Math.round(W*H/2400)},()=>({x:Math.random()*W,y:Math.random()*H*0.78,r:0.35+Math.random()*Math.random()*1.5,
+      p:Math.random()*6.3,s:0.5+Math.random()*2,z:Math.random(),h:Math.random()<0.2?"#cfd8ff":Math.random()<0.1?"#ffe2b8":"#fff"}));
+  };
+  const frame=t=>{
+    raf=0;if(!el.isConnected)return;
+    if(t-last>32){
+      last=t;mx+=(tx-mx)*0.06;my+=(ty-my)*0.06;g.clearRect(0,0,W,H);
+      for(const s of S){g.globalAlpha=0.25+0.75*Math.abs(Math.sin(s.p+t/1000*s.s));g.fillStyle=s.h;g.beginPath();g.arc(s.x+mx*s.z*14,s.y+my*s.z*8,s.r,0,7);g.fill();}
+      if(!met&&Math.random()<0.006){const a=0.35+Math.random()*0.35;met={x:W*(0.15+Math.random()*0.7),y:H*Math.random()*0.3,a,v:9+Math.random()*6,l:0};}
+      if(met){
+        met.l++;const x=met.x+Math.cos(met.a)*met.v*met.l,y=met.y+Math.sin(met.a)*met.v*met.l,k=Math.min(1,met.l/6)*Math.max(0,1-met.l/30);
+        const tl=90,gr=g.createLinearGradient(x-Math.cos(met.a)*tl,y-Math.sin(met.a)*tl,x,y);
+        gr.addColorStop(0,"rgba(255,255,255,0)");gr.addColorStop(1,"rgba(255,255,255,"+k+")");
+        g.globalAlpha=1;g.strokeStyle=gr;g.lineWidth=1.6;g.beginPath();g.moveTo(x-Math.cos(met.a)*tl,y-Math.sin(met.a)*tl);g.lineTo(x,y);g.stroke();
+        if(met.l>30)met=null;
+      }
+      g.globalAlpha=1;
+    }
+    if(el._vis!==false&&!document.hidden)raf=requestAnimationFrame(frame);
+  };
+  const kick=()=>{if(!raf)raf=requestAnimationFrame(frame);};
+  el.addEventListener("pointermove",e=>{if(e.pointerType!=="mouse")return;const r=el.getBoundingClientRect();tx=((e.clientX-r.left)/r.width-0.5)*2;ty=((e.clientY-r.top)/r.height-0.5)*2;});
+  const ori=e=>{if(e.gamma==null||!el.isConnected)return;tx=Math.max(-1,Math.min(1,e.gamma/25));ty=Math.max(-1,Math.min(1,(e.beta-40)/25));};
+  window.addEventListener("deviceorientation",ori);el._unStars=()=>window.removeEventListener("deviceorientation",ori);
+  new ResizeObserver(()=>{size();kick();}).observe(c);
+  new IntersectionObserver(es=>{el._vis=es[0].isIntersecting;el.classList.toggle("hold",!el._vis||document.hidden);kick();}).observe(el);
+  document.addEventListener("visibilitychange",()=>{if(!el.isConnected)return;el.classList.toggle("hold",el._vis===false||document.hidden);kick();});
+  size();kick();
+}
+function spMeteor(d){                                           // метеор по фону страницы — раз в несколько секунд, наискосок
+  if(!d.isConnected||document.hidden)return;
+  const m=document.createElement("i"),W=innerWidth,H=innerHeight,x=W*(0.2+Math.random()*0.8),y=H*Math.random()*0.45,a=140+Math.random()*25,len=260+Math.random()*260;
+  m.className="met";d.appendChild(m);
+  const dx=Math.cos(a*Math.PI/180)*len,dy=Math.sin(a*Math.PI/180)*len;
+  m.animate([{opacity:0,transform:`translate(${x}px,${y}px) rotate(${a}deg) scaleX(.3)`},{opacity:1,offset:0.25},
+    {opacity:0,transform:`translate(${x+dx}px,${y+dy}px) rotate(${a}deg) scaleX(1)`}],{duration:1300+Math.random()*600,easing:"cubic-bezier(.3,.1,.6,1)"}).onfinish=()=>m.remove();
+}
+function spaceDeco(on){
+  const d=$("spDeco"),c=$("spCard");
+  if(!on){
+    if(d){clearInterval(d._iv);d.remove();}
+    if(c){if(c._unStars)c._unStars();spBig(c,false);c.remove();}
+    document.documentElement.classList.remove("sp-big");spMusic(false);
+    return;
+  }
+  if(!d){
+    const el=document.createElement("div");el.id="spDeco";el.setAttribute("aria-hidden","true");
+    let h="";for(let k=0;k<42;k++)h+=`<i class="tw" style="left:${(Math.random()*100).toFixed(1)}%;top:${(Math.random()*100).toFixed(1)}%;--z:${(1.5+Math.random()*2.6).toFixed(1)}px;--d:${(2.5+Math.random()*4).toFixed(1)}s;--dl:${(-Math.random()*6).toFixed(1)}s"></i>`;
+    el.innerHTML=h;document.body.appendChild(el);
+    setTimeout(()=>spMeteor(el),2500);el._iv=setInterval(()=>spMeteor(el),7000);
+  }
+  if(!c){
+    const el=document.createElement("section");el.id="spCard";el.tabIndex=0;
+    el.setAttribute("aria-roledescription","слайд-шоу");el.setAttribute("aria-label","Аффирмации: листать стрелками ← →");
+    el.innerHTML='<i class="spimg" aria-hidden="true"></i><i class="spsh" aria-hidden="true"></i><canvas class="spst" aria-hidden="true"></canvas><i class="spfl" aria-hidden="true"></i>'+
+      '<div class="sphud" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
+      '<div class="sptop"><span class="splogo">ОТКЛИК</span><span class="spch">✦ Аффирмации</span><span class="spnum"></span></div>'+
+      '<div class="spstage" aria-live="polite"></div>'+
+      `<button class="spnav prev" type="button" aria-label="Предыдущая">${SP_ICO.prev}</button><button class="spnav next" type="button" aria-label="Следующая">${SP_ICO.next}</button>`+
+      '<div class="spbar">'+SP_AFF.map((_,k)=>`<button type="button" aria-label="Аффирмация ${k+1}"><i><b></b></i></button>`).join("")+"</div>"+
+      `<div class="spbtns"><button type="button" data-sp="mute" aria-label="Музыка" aria-pressed="${soundOff()}">${AB_ICO.mute}</button>`+
+      `<button type="button" data-sp="play" aria-label="Пауза / дальше сами">${SP_ICO.play}</button><button type="button" data-sp="big" aria-label="Во весь экран">${AB_ICO.big}</button></div>`;
+    qs("main").prepend(el);
+    const go=k=>spShow(el,el._i+k,k);
+    el.querySelector(".prev").onclick=()=>go(-1);
+    el.querySelector(".next").onclick=()=>go(1);
+    el.querySelector(".spbar").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const k=[...b.parentNode.children].indexOf(b);if(k!==el._i)spShow(el,k,k>el._i?1:-1);});
+    el.querySelector(".spbar").addEventListener("animationend",e=>{if(e.target.closest(".cur"))go(1);});
+    el.querySelector(".spbtns").addEventListener("click",e=>{
+      const b=e.target.closest("[data-sp]");if(!b)return;
+      if(b.dataset.sp==="play")el.classList.toggle("stop");
+      else if(b.dataset.sp==="mute")setSound(b.getAttribute("aria-pressed")!=="true");
+      else spBig(el,!el.classList.contains("big"));
+    });
+    el.addEventListener("keydown",e=>{
+      if(e.key==="ArrowRight"){go(1);e.preventDefault();}else if(e.key==="ArrowLeft"){go(-1);e.preventDefault();}
+      else if(e.key==="Escape"&&el.classList.contains("big"))spBig(el,false);
+    });
+    document.addEventListener("fullscreenchange",()=>{if(!document.fullscreenElement&&el.classList.contains("big")&&el.isConnected){el.classList.remove("big");document.documentElement.classList.remove("sp-big");}});
+    // свайп: фраза едет за пальцем; отпустил дальше 50 px — следующая/предыдущая; короткий тап по краю на телефоне — тоже листает
+    const stg=el.querySelector(".spstage");let sx=null,sy=0,mv=false;
+    const cur=()=>stg.querySelector(".spq:not(.out)");
+    stg.addEventListener("pointerdown",e=>{if(e.button>0)return;sx=e.clientX;sy=e.clientY;mv=false;el.classList.add("hold");try{stg.setPointerCapture(e.pointerId);}catch(x){}});
+    stg.addEventListener("pointermove",e=>{
+      if(sx===null)return;const dx=e.clientX-sx,q=cur();if(Math.abs(dx)>8)mv=true;if(!q||!mv)return;
+      q.classList.remove("back");q.classList.add("drag");q.style.transform=`translateX(${dx*0.4}px)`;q.style.opacity=1-Math.min(0.6,Math.abs(dx)/500);
+    });
+    const up=e=>{
+      if(sx===null)return;const dx=e.clientX-sx,dy=e.clientY-sy,q=cur();sx=null;
+      el.classList.toggle("hold",el._vis===false||document.hidden);
+      if(q){q.classList.remove("drag");q.classList.add("back");q.style.transform="";q.style.opacity="";}
+      if(e.type==="pointercancel")return;
+      if(mv&&Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(dx<0?1:-1);
+      else if(!mv&&e.pointerType!=="mouse"){const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width;if(x<0.3)go(-1);else if(x>0.7)go(1);}
+    };
+    stg.addEventListener("pointerup",up);stg.addEventListener("pointercancel",up);
+    const i0=+spLS.get("spIdx",-1);
+    spShow(el,Number.isFinite(i0)?i0+1:0,1);                     // каждый заход — со следующей аффирмации
+    spStars(el);
+  }
+}
 
 /* ================= ЗАПУСК ================= */
 applyTheme();showPage(S.page);connect();
