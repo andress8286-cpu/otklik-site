@@ -1763,12 +1763,61 @@ const SP_ICO={
 };
 const SP_CAM=[[0,0,1.04],[-2.6,1,1.1],[2.2,-1.4,1.08],[-1.6,-1.2,1.12],[2.6,1.3,1.09],[0,2,1.11]];   // камера по картинке на слайд: x %, y %, масштаб
 const spLS={get:(k,d)=>{try{const v=localStorage.getItem("otklik."+k);return v===null?d:v;}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem("otklik."+k,v);}catch(e){}}};
+/* Андрей 28.10: «музыка прерывается — сделать невидимый переход», «через 3 часа звук вкл, а не играет», «разная музыка для медитации,
+   кнопка сменить, везде плавный переход». Два плеера по очереди: за SP_XF с до конца трека второй начинает с начала и нарастает,
+   первый затихает — шва нет (loop у <audio> даёт паузу на стыке). Сторож раз в 2 с и при возврате во вкладку: должна играть, а стоит
+   или время не идёт — перезапуск. Новый трек — строка в SP_TRACKS; кнопка смены видна, когда треков больше одного. */
+const SP_TRACKS=[["space-music.mp3","Космос"]];
+const SP_VOL=0.4,SP_XF=5;
 let spAud=null;
-function spMusic(on){
-  if(!on||curTheme()!=="space"){if(spAud)spAud.pause();return;}
-  if(!spAud){spAud=new Audio("space-music.mp3");spAud.loop=true;spAud.volume=0.4;}
-  spAud.play().catch(()=>{});                                   // без нажатия браузер не даст — заиграет с первого нажатия
+const spP={a:[],cur:0,want:false,t:+spLS.get("spTrack",0)||0,lastT:-1,stall:0};
+function spFade(el,to,ms,done){
+  clearInterval(el._fd);const from=el.volume,t0=performance.now();
+  el._fd=setInterval(()=>{const k=Math.min(1,(performance.now()-t0)/ms);el.volume=Math.max(0,Math.min(1,from+(to-from)*k));
+    if(k>=1){clearInterval(el._fd);if(done)done();}},50);
 }
+function spEl(i){
+  if(!spP.a[i]){const el=new Audio();el.preload="auto";el.volume=0;
+    el.addEventListener("timeupdate",()=>{if(spP.want&&el===spP.a[spP.cur]&&el.duration&&!el._xf&&el.duration-el.currentTime<SP_XF)spCross(true);});
+    el.addEventListener("ended",()=>{if(spP.want&&el===spP.a[spP.cur])spCross(true);});
+    spP.a[i]=el;}
+  return spP.a[i];
+}
+function spCross(same,ms){                                      // плавно на начало того же трека (петля) или на spP.t (смена)
+  const old=spP.a[spP.cur];spP.cur=1-spP.cur;const nw=spEl(spP.cur),f=SP_TRACKS[spP.t%SP_TRACKS.length][0];
+  if(old){old._xf=true;spFade(old,0,ms||SP_XF*1000,()=>{old.pause();old._xf=false;});}
+  if(!nw.src.endsWith(f))nw.src=f;
+  try{nw.currentTime=0;}catch(e){}
+  nw._xf=false;nw.volume=0;spP.lastT=-1;spP.stall=0;
+  nw.play().then(()=>spFade(nw,SP_VOL,ms||SP_XF*1000)).catch(()=>{});
+  spAud=nw;
+}
+function spMusic(on){
+  spP.want=!!on&&curTheme()==="space";
+  if(!spP.want){spP.a.forEach(el=>{if(el){clearInterval(el._fd);el.pause();el._xf=false;}});return;}
+  const el=spP.a[spP.cur];
+  if(el&&el.src&&!el.paused&&!el._xf)return;
+  if(el&&el.src&&el.currentTime>0&&el.duration-el.currentTime>SP_XF){ // пауза → продолжить с того же места, мягко
+    el.volume=0;el.play().then(()=>spFade(el,SP_VOL,1500)).catch(()=>{});spAud=el;return;}
+  spCross(true,1500);
+}
+function spNext(){                                              // кнопка «сменить музыку»: следующий трек, переход 3 с
+  if(SP_TRACKS.length<2)return;
+  spP.t=(spP.t+1)%SP_TRACKS.length;spLS.set("spTrack",spP.t);
+  document.querySelectorAll('[data-sp="next"]').forEach(b=>b.title="Музыка: "+SP_TRACKS[spP.t][1]+" — сменить");
+  if(spP.want)spCross(false,3000);
+}
+function spWatch(){                                             // сторож: стоит или не идёт время — перезапуск (после сна вкладки)
+  if(!spP.want||document.hidden)return;
+  const el=spP.a[spP.cur];if(!el||!el.src){spMusic(true);return;}
+  if(el.paused){el.play().catch(()=>{});return;}
+  if(el.currentTime===spP.lastT){if(++spP.stall>=2){spP.stall=0;el.pause();el.play().catch(()=>{});}}
+  else spP.stall=0;
+  spP.lastT=el.currentTime;
+}
+setInterval(spWatch,2000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){spP.lastT=-1;spWatch();}});
+window.addEventListener("focus",spWatch);window.addEventListener("pageshow",spWatch);
 /* Андрей 28.10: «звук чтобы включён был ещё в тот момент» — и в само нажатие, которым выбрали «Космос» в меню (click после смены темы),
    и с клавиатуры; без нажатия браузер звук не даёт никому */
 const spKick=()=>{if(curTheme()==="space"&&!soundOff()&&(!spAud||spAud.paused))spMusic(true);};
@@ -1874,6 +1923,7 @@ function spaceDeco(on){
       `<button class="spnav prev" type="button" aria-label="Предыдущая">${SP_ICO.prev}</button><button class="spnav next" type="button" aria-label="Следующая">${SP_ICO.next}</button>`+
       '<div class="spbar">'+SP_AFF.map((_,k)=>`<button type="button" aria-label="Аффирмация ${k+1}"><i><b></b></i></button>`).join("")+"</div>"+
       `<div class="spbtns"><button type="button" data-sp="mute" aria-label="Музыка" aria-pressed="${soundOff()}">${AB_ICO.mute}</button>`+
+      (SP_TRACKS.length>1?`<button type="button" data-sp="next" aria-label="Сменить музыку" title="Музыка: ${SP_TRACKS[spP.t%SP_TRACKS.length][1]} — сменить" style="font-size:18px;line-height:1">♫</button>`:"")+
       `<button type="button" data-sp="play" aria-label="Пауза / дальше сами">${SP_ICO.play}</button><button type="button" data-sp="big" aria-label="Во весь экран">${AB_ICO.big}</button></div>`;
     qs("main").prepend(el);
     const go=k=>spShow(el,el._i+k,k);
@@ -1885,6 +1935,7 @@ function spaceDeco(on){
       const b=e.target.closest("[data-sp]");if(!b)return;
       if(b.dataset.sp==="play")el.classList.toggle("stop");
       else if(b.dataset.sp==="mute")setSound(b.getAttribute("aria-pressed")!=="true");
+      else if(b.dataset.sp==="next")spNext();
       else spBig(el,!el.classList.contains("big"));
     });
     el.addEventListener("keydown",e=>{
