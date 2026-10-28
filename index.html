@@ -1728,7 +1728,7 @@ const SP_AFF=[
   "Удача улыбается мне каждый день.",
   "Мир полон возможностей, и они сами находят меня.",
   "Я выбираю радость и спокойствие."
-];
+].flatMap((s,i)=>i%3===2?[s,"Благодарю."]:[s]);   // Андрей 28.10: «через каждые 3 аффирмации — одну «Благодарю»»
 const SP_ICO={
   prev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
   next:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
