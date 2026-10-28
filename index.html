@@ -18,6 +18,8 @@ function themeFont(t){if(!TF[t]||document.getElementById("tf-"+t))return;var l=d
   l.href="https://fonts.googleapis.com/css2?family="+TF[t]+"&display=swap";document.head.appendChild(l);}
 /* Андрей 28.10: «при следующем обновлении страницы разово тема сама поменяется на «Космос», а дальше в обычном режиме» — один раз на устройство */
 try{if(!localStorage.getItem("otklik.space1")){localStorage.setItem("otklik.space1","1");localStorage.setItem("otklik.theme","space");}}catch(e){}
+/* Андрей 28.10: «звук чтобы включён был ещё в тот момент» — раз на устройство звук «Космоса» включён, даже если раньше его выключали (заиграет с первого нажатия) */
+try{if(!localStorage.getItem("otklik.space1snd")){localStorage.setItem("otklik.space1snd","1");if(localStorage.getItem("otklik.theme")==="space")localStorage.setItem("otklik.mute","0");}}catch(e){}
 try{var t0=localStorage.getItem("otklik.theme");if(/^(light|dark|birds|space)$/.test(t0)){document.documentElement.setAttribute("data-theme",t0);themeFont(t0);}}catch(e){}</script>
 <style>
 :root{
@@ -1740,7 +1742,12 @@ function spMusic(on){
   if(!spAud){spAud=new Audio("space-music.mp3");spAud.loop=true;spAud.volume=0.4;}
   spAud.play().catch(()=>{});                                   // без нажатия браузер не даст — заиграет с первого нажатия
 }
-document.addEventListener("pointerdown",()=>{if(curTheme()==="space"&&!soundOff()&&(!spAud||spAud.paused))spMusic(true);},true);
+/* Андрей 28.10: «звук чтобы включён был ещё в тот момент» — и в само нажатие, которым выбрали «Космос» в меню (click после смены темы),
+   и с клавиатуры; без нажатия браузер звук не даёт никому */
+const spKick=()=>{if(curTheme()==="space"&&!soundOff()&&(!spAud||spAud.paused))spMusic(true);};
+document.addEventListener("pointerdown",spKick,true);
+document.addEventListener("click",spKick);
+document.addEventListener("keydown",spKick,true);
 function spShow(el,i,dir){
   const n=SP_AFF.length;i=((i%n)+n)%n;dir=dir||1;
   const st=el.querySelector(".spstage"),old=st.querySelector(".spq:not(.out)"),q=document.createElement("p");
