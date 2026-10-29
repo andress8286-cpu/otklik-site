@@ -1767,7 +1767,8 @@ const spLS={get:(k,d)=>{try{const v=localStorage.getItem("otklik."+k);return v==
    кнопка сменить, везде плавный переход». Два плеера по очереди: за SP_XF с до конца трека второй начинает с начала и нарастает,
    первый затихает — шва нет (loop у <audio> даёт паузу на стыке). Сторож раз в 2 с и при возврате во вкладку: должна играть, а стоит
    или время не идёт — перезапуск. Новый трек — строка в SP_TRACKS; кнопка смены видна, когда треков больше одного. */
-const SP_TRACKS=[["space-music.mp3","Космос"]];
+/* Андрей 29.10: четыре мелодии по 3,3–3,5 мин (половинки двух генераций Suno), идут по очереди с плавным переходом; ♫ — следующая */
+const SP_TRACKS=[["space-music.mp3","Космос 1"],["space-music-2.mp3","Космос 2"],["space-music-3.mp3","Космос 3"],["space-music-4.mp3","Космос 4"]];
 const SP_VOL=0.4,SP_XF=5;
 let spAud=null;
 const spP={a:[],cur:0,want:false,t:+spLS.get("spTrack",0)||0,lastT:-1,stall:0};
@@ -1778,8 +1779,8 @@ function spFade(el,to,ms,done){
 }
 function spEl(i){
   if(!spP.a[i]){const el=new Audio();el.preload="auto";el.volume=0;
-    el.addEventListener("timeupdate",()=>{if(spP.want&&el===spP.a[spP.cur]&&el.duration&&!el._xf&&el.duration-el.currentTime<SP_XF)spCross(true);});
-    el.addEventListener("ended",()=>{if(spP.want&&el===spP.a[spP.cur])spCross(true);});
+    el.addEventListener("timeupdate",()=>{if(spP.want&&el===spP.a[spP.cur]&&el.duration&&!el._xf&&el.duration-el.currentTime<SP_XF)spNext(true);});
+    el.addEventListener("ended",()=>{if(spP.want&&el===spP.a[spP.cur]&&!el._xf)spNext(true);});
     spP.a[i]=el;}
   return spP.a[i];
 }
@@ -1801,11 +1802,11 @@ function spMusic(on){
     el.volume=0;el.play().then(()=>spFade(el,SP_VOL,1500)).catch(()=>{});spAud=el;return;}
   spCross(true,1500);
 }
-function spNext(){                                              // кнопка «сменить музыку»: следующий трек, переход 3 с
-  if(SP_TRACKS.length<2)return;
+function spNext(auto){                                          // кнопка «сменить музыку» — переход 3 с; конец трека (auto) — следующий за SP_XF с
+  if(SP_TRACKS.length<2){if(auto)spCross(true);return;}
   spP.t=(spP.t+1)%SP_TRACKS.length;spLS.set("spTrack",spP.t);
   document.querySelectorAll('[data-sp="next"]').forEach(b=>b.title="Музыка: "+SP_TRACKS[spP.t][1]+" — сменить");
-  if(spP.want)spCross(false,3000);
+  if(spP.want)spCross(false,auto?0:3000);
 }
 function spWatch(){                                             // сторож: стоит или не идёт время — перезапуск (после сна вкладки)
   if(!spP.want||document.hidden)return;
