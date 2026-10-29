@@ -382,6 +382,12 @@ button[disabled],select[disabled],input[disabled],textarea[disabled]{opacity:.55
 @keyframes sp-fill{to{transform:scaleX(1)}}
 #spCard .spbtns{position:absolute;z-index:3;right:22px;bottom:10px;display:flex;gap:6px}
 #spCard .spbtns button{width:36px;height:36px;border-radius:50%;border:1px solid rgba(220,215,255,.36);background:rgba(10,12,36,.42);color:#fff;display:grid;place-items:center;padding:0;cursor:pointer}
+#spCard .spmenu{position:absolute;right:0;bottom:44px;display:flex;flex-direction:column;gap:4px;padding:6px;border-radius:16px;background:rgba(10,12,36,.86);border:1px solid rgba(220,215,255,.36)}
+#spCard .spmenu[hidden]{display:none}
+#spCard .spbtns .spmenu button{width:auto;height:34px;border-radius:17px;padding:0 16px;font-size:14px;font-family:inherit;white-space:nowrap;display:block;text-align:left}
+#spCard .spbtns .spmenu button[aria-current="true"]{background:rgba(164,147,255,.6);border-color:#fff}
+#spCard [data-sp="next"] small{font-size:10px;margin:6px 0 0 1px}
+#spCard .spbtns [data-sp="next"]{display:flex;align-items:center;justify-content:center}
 #spCard .spbtns button:hover{background:rgba(164,147,255,.38)}
 #spCard .spbtns svg{width:16px;height:16px}
 #spCard [data-sp="play"] .pl,#spCard.stop [data-sp="play"] .pa,#spCard [data-sp="mute"] .off,#spCard [data-sp="mute"][aria-pressed="true"] .on{display:none}
@@ -1802,10 +1808,19 @@ function spMusic(on){
     el.volume=0;el.play().then(()=>spFade(el,SP_VOL,1500)).catch(()=>{});spAud=el;return;}
   spCross(true,1500);
 }
+/* Андрей 29.10: ♫ — список мелодий, играющая отмечена, нажал — играет она; на кнопке номер текущей */
+function spMenu(card,close){const bx=card.querySelector('.spbtns');let m=bx.querySelector('.spmenu');
+  if(!m){m=document.createElement('div');m.className='spmenu';m.hidden=true;
+    m.innerHTML=SP_TRACKS.map((x,k)=>'<button type="button" data-sp="pick" data-k="'+k+'">'+(k+1)+'. '+x[1]+'</button>').join('');bx.prepend(m);
+    document.addEventListener('click',e=>{if(!e.target.closest('.spbtns'))m.hidden=true})}
+  m.hidden=close||!m.hidden;spMark()}
+function spMark(){const t=spP.t%SP_TRACKS.length;document.querySelectorAll('#spCard [data-sp="pick"]').forEach(b=>b.setAttribute('aria-current',+b.dataset.k===t));
+  document.querySelectorAll('[data-sp="next"]').forEach(b=>{b.innerHTML='♫<small>'+(t+1)+'</small>';b.title='Играет '+SP_TRACKS[t][1]+' — выбрать мелодию'})}
+function spPick(k,card){if(k!==spP.t%SP_TRACKS.length){spP.t=(k-1+SP_TRACKS.length)%SP_TRACKS.length;spNext()}spMenu(card,true)}
 function spNext(auto){                                          // кнопка «сменить музыку» — переход 3 с; конец трека (auto) — следующий за SP_XF с
   if(SP_TRACKS.length<2){if(auto)spCross(true);return;}
   spP.t=(spP.t+1)%SP_TRACKS.length;spLS.set("spTrack",spP.t);
-  document.querySelectorAll('[data-sp="next"]').forEach(b=>b.title="Музыка: "+SP_TRACKS[spP.t][1]+" — сменить");
+  document.querySelectorAll('[data-sp="next"]').forEach(b=>b.title="Музыка: "+SP_TRACKS[spP.t][1]+" — сменить");spMark();
   if(spP.want)spCross(false,auto?0:3000);
 }
 function spWatch(){                                             // сторож: стоит или не идёт время — перезапуск (после сна вкладки)
@@ -1924,7 +1939,7 @@ function spaceDeco(on){
       `<button class="spnav prev" type="button" aria-label="Предыдущая">${SP_ICO.prev}</button><button class="spnav next" type="button" aria-label="Следующая">${SP_ICO.next}</button>`+
       '<div class="spbar">'+SP_AFF.map((_,k)=>`<button type="button" aria-label="Аффирмация ${k+1}"><i><b></b></i></button>`).join("")+"</div>"+
       `<div class="spbtns"><button type="button" data-sp="mute" aria-label="Музыка" aria-pressed="${soundOff()}">${AB_ICO.mute}</button>`+
-      (SP_TRACKS.length>1?`<button type="button" data-sp="next" aria-label="Сменить музыку" title="Музыка: ${SP_TRACKS[spP.t%SP_TRACKS.length][1]} — сменить" style="font-size:18px;line-height:1">♫</button>`:"")+
+      (SP_TRACKS.length>1?`<button type="button" data-sp="next" aria-label="Сменить музыку" title="Музыка: ${SP_TRACKS[spP.t%SP_TRACKS.length][1]} — сменить" style="font-size:18px;line-height:1">♫<small>${spP.t%SP_TRACKS.length+1}</small></button>`:"")+
       `<button type="button" data-sp="play" aria-label="Пауза / дальше сами">${SP_ICO.play}</button><button type="button" data-sp="big" aria-label="Во весь экран">${AB_ICO.big}</button></div>`;
     qs("main").prepend(el);
     const go=k=>spShow(el,el._i+k,k);
@@ -1936,7 +1951,7 @@ function spaceDeco(on){
       const b=e.target.closest("[data-sp]");if(!b)return;
       if(b.dataset.sp==="play")el.classList.toggle("stop");
       else if(b.dataset.sp==="mute")setSound(b.getAttribute("aria-pressed")!=="true");
-      else if(b.dataset.sp==="next")spNext();
+      else if(b.dataset.sp==="next")spMenu(el);else if(b.dataset.sp==="pick")spPick(+b.dataset.k,el);
       else spBig(el,!el.classList.contains("big"));
     });
     el.addEventListener("keydown",e=>{
