@@ -1812,10 +1812,10 @@ function spMusic(on){
 function spMenu(card,close){const bx=card.querySelector('.spbtns');let m=bx.querySelector('.spmenu');
   if(!m){m=document.createElement('div');m.className='spmenu';m.hidden=true;
     m.innerHTML=SP_TRACKS.map((x,k)=>'<button type="button" data-sp="pick" data-k="'+k+'">'+(k+1)+'. '+x[1]+'</button>').join('');bx.prepend(m);
-    document.addEventListener('click',e=>{if(!e.target.closest('.spbtns'))m.hidden=true})}
+    document.addEventListener('click',e=>{if(!e.composedPath().some(x=>x.classList&&x.classList.contains('spbtns')))m.hidden=true})}
   m.hidden=close||!m.hidden;spMark()}
 function spMark(){const t=spP.t%SP_TRACKS.length;document.querySelectorAll('#spCard [data-sp="pick"]').forEach(b=>b.setAttribute('aria-current',+b.dataset.k===t));
-  document.querySelectorAll('[data-sp="next"]').forEach(b=>{b.innerHTML='♫<small>'+(t+1)+'</small>';b.title='Играет '+SP_TRACKS[t][1]+' — выбрать мелодию'})}
+  document.querySelectorAll('[data-sp="next"]').forEach(b=>{let s=b.querySelector('small');if(!s){b.textContent='♫';s=document.createElement('small');b.append(s)}if(s.textContent!=String(t+1))s.textContent=t+1;b.title='Играет '+SP_TRACKS[t][1]+' — выбрать мелодию'})}
 function spPick(k,card){if(k!==spP.t%SP_TRACKS.length){spP.t=(k-1+SP_TRACKS.length)%SP_TRACKS.length;spNext()}spMenu(card,true)}
 function spNext(auto){                                          // кнопка «сменить музыку» — переход 3 с; конец трека (auto) — следующий за SP_XF с
   if(SP_TRACKS.length<2){if(auto)spCross(true);return;}
